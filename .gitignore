@@ -52,3 +52,9 @@ Thumbs.db
 *.log
 *.hprof
 release-assets/
+
+# ---- Python caches ----
+__pycache__/
+*.pyc
+threat-feed-out/
+out/

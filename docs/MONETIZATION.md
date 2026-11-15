@@ -55,5 +55,5 @@ cancellations and revocations.
 
 ### What Premium unlocks
 
-**Only the removal of ads.** Protection, AI explanations (fair-use limit of 20 per day for
-everyone) and history retention (up to 365 days) are identical for free and Premium users.
+**Only the removal of ads.** Protection, file scanning, the threat list and history retention
+(up to 365 days) are identical for free and Premium users.

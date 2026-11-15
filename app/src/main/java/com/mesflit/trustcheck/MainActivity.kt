@@ -59,14 +59,13 @@ class MainActivity : AppCompatActivity() {
 
             Intent.ACTION_SEND -> {
                 val type = intent.type.orEmpty()
-                if (type.startsWith("image/")) {
-                    IntentCompat.getParcelableExtra(intent, Intent.EXTRA_STREAM, Uri::class.java)?.let {
-                        container.pendingScan.value = PendingScan.Image(it)
-                    }
-                } else {
-                    val text = listOfNotNull(intent.getStringExtra(Intent.EXTRA_SUBJECT), intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString())
-                        .joinToString("\n").trim()
-                    if (text.isNotEmpty()) container.pendingScan.value = PendingScan.Text(text, ScanOrigin.SHARE_TEXT)
+                val stream = IntentCompat.getParcelableExtra(intent, Intent.EXTRA_STREAM, Uri::class.java)
+                val text = listOfNotNull(intent.getStringExtra(Intent.EXTRA_SUBJECT), intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString())
+                    .joinToString("\n").trim()
+                when {
+                    stream != null && type.startsWith("image/") -> container.pendingScan.value = PendingScan.Image(stream)
+                    stream != null -> container.pendingScan.value = PendingScan.File(stream)   // documents, APKs, archives…
+                    text.isNotEmpty() -> container.pendingScan.value = PendingScan.Text(text, ScanOrigin.SHARE_TEXT)
                 }
             }
 
@@ -75,8 +74,13 @@ class MainActivity : AppCompatActivity() {
             }
 
             // "Open with TrustCheck": analyze only. The link is never opened automatically.
-            Intent.ACTION_VIEW -> intent.dataString?.takeIf { it.startsWith("http", ignoreCase = true) }?.let {
-                container.pendingScan.value = PendingScan.Text(it, ScanOrigin.LINK_OPEN)
+            Intent.ACTION_VIEW -> {
+                val data = intent.data
+                when {
+                    data?.scheme.equals("content", ignoreCase = true) -> container.pendingScan.value = PendingScan.File(data!!)
+                    intent.dataString?.startsWith("http", ignoreCase = true) == true ->
+                        container.pendingScan.value = PendingScan.Text(intent.dataString!!, ScanOrigin.LINK_OPEN)
+                }
             }
         }
     }

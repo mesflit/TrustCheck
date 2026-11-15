@@ -31,6 +31,14 @@ synced blocklist → cloud threat intel (if consented and online) → `RiskScore
    the cloud verdict with the local one (`ResultMerger.merge` never downgrades local warnings),
    updates history and alerts again only if the verdict escalated.
 
+**Files** (scanner button, share sheet, "Open with"): `FileScanService` → `FileScanner` reads the
+file on the device (SHA-256, magic bytes, ZIP entries, APK manifest, text/PDF/image OCR) →
+`FileInspector` (pure Kotlin) → links inside go through the URL engine → saved as a FILE record.
+
+**Threat list**: `ThreatFeedSyncWorker` → `ThreatFeedStore.sync()` downloads `feed.json` +
+`feed.txt.gz` from the `threat-feed` GitHub Release, verifies SHA-256, builds a sorted 64-bit hash
+index and writes it atomically; lookups memory-map that file.
+
 ## Dependency injection
 
 `AppContainer` is a hand-written container created in `TrustCheckApp`. ViewModels are built
@@ -41,6 +49,7 @@ the only KSP processor.
 
 | Decision | Reason |
 |---|---|
+| No server, GitHub-hosted threat list | Zero running cost; links never leave the device for list checks |
 | Single module, layered packages | Fewer build-config pitfalls; easy for contributors |
 | Pure-Kotlin engine | Deterministic, fast unit tests; reusable server-side |
 | AppCompat per-app locales + `localizedContext()` | Immediate language switching on API 26–36, and correct language in notifications/workers |
@@ -51,6 +60,7 @@ the only KSP processor.
 
 ## Not implemented (by design or pending)
 
+- **AI explanations**: removed to keep the app free of running costs; local explanations cover every indicator in 9 languages.
 - **VPN/DNS protection**: not included. If added later it must be opt-in, explained, never
   silent, and must not inspect HTTPS contents.
 - **Native ads**: not used, to keep ad load low. Only banners are used; Premium removes them and changes nothing else.

@@ -11,7 +11,6 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.mesflit.trustcheck.core.localization.AppLanguage
-import com.mesflit.trustcheck.core.network.DailyQuota
 import com.mesflit.trustcheck.domain.AppSettings
 import com.mesflit.trustcheck.domain.SettingsRepository
 import com.mesflit.trustcheck.domain.ThemeMode
@@ -33,14 +32,12 @@ class SettingsRepositoryImpl(context: Context) : SettingsRepository {
         val monitoring = booleanPreferencesKey("notification_monitoring")
         val alerts = booleanPreferencesKey("alerts_enabled")
         val cloudTi = booleanPreferencesKey("cloud_threat_intel")
-        val cloudAi = booleanPreferencesKey("cloud_ai")
+        val threatFeed = booleanPreferencesKey("threat_feed")
         val redirects = booleanPreferencesKey("resolve_redirects")
         val keepClean = booleanPreferencesKey("keep_clean_notification_scans")
         val retention = intPreferencesKey("retention_days")
         val diagnostics = booleanPreferencesKey("diagnostics")
         val sbKey = stringPreferencesKey("safe_browsing_key")
-        val aiDay = longPreferencesKey("ai_quota_day")
-        val aiUsed = intPreferencesKey("ai_quota_used")
         val totalScans = longPreferencesKey("total_scans")
         val backendToken = stringPreferencesKey("backend_token")
     }
@@ -49,7 +46,6 @@ class SettingsRepositoryImpl(context: Context) : SettingsRepository {
         .catch { e -> if (e is IOException) emit(androidx.datastore.preferences.core.emptyPreferences()) else throw e }
         .map { p ->
             read(p).copy(
-                aiQuota = DailyQuota(p[K.aiDay] ?: 0, p[K.aiUsed] ?: 0),
                 totalScans = p[K.totalScans] ?: 0,
             )
         }
@@ -66,7 +62,7 @@ class SettingsRepositoryImpl(context: Context) : SettingsRepository {
             p[K.monitoring] = n.notificationMonitoring
             p[K.alerts] = n.alertsEnabled
             p[K.cloudTi] = n.cloudThreatIntel
-            p[K.cloudAi] = n.cloudAi
+            p[K.threatFeed] = n.threatFeed
             p[K.redirects] = n.resolveRedirects
             p[K.keepClean] = n.keepCleanNotificationScans
             p[K.retention] = n.retentionDays
@@ -82,7 +78,7 @@ class SettingsRepositoryImpl(context: Context) : SettingsRepository {
         notificationMonitoring = p[K.monitoring] ?: false,
         alertsEnabled = p[K.alerts] ?: true,
         cloudThreatIntel = p[K.cloudTi] ?: false,
-        cloudAi = p[K.cloudAi] ?: false,
+        threatFeed = p[K.threatFeed] ?: true,
         resolveRedirects = p[K.redirects] ?: false,
         keepCleanNotificationScans = p[K.keepClean] ?: false,
         retentionDays = p[K.retention] ?: 30,
@@ -96,14 +92,6 @@ class SettingsRepositoryImpl(context: Context) : SettingsRepository {
 
     override suspend fun incrementTotalScans(by: Int) {
         store.edit { it[K.totalScans] = (it[K.totalScans] ?: 0) + by }
-    }
-
-    override suspend fun consumeAiQuota(day: Long) {
-        store.edit { p ->
-            val q = DailyQuota(p[K.aiDay] ?: 0, p[K.aiUsed] ?: 0).consume(day)
-            p[K.aiDay] = q.epochDay
-            p[K.aiUsed] = q.used
-        }
     }
 
     override suspend fun backendToken(): String? = store.data.first()[K.backendToken]

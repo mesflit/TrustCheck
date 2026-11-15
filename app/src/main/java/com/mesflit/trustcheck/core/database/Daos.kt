@@ -3,9 +3,7 @@ package com.mesflit.trustcheck.core.database
 
 import androidx.room.Dao
 import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -65,28 +63,4 @@ interface ScanDao {
 
     @Query("DELETE FROM scans WHERE timestamp < :cutoff")
     suspend fun deleteOlderThan(cutoff: Long): Int
-}
-
-@Dao
-interface BlocklistDao {
-    @Query("SELECT COUNT(*) FROM blocklist")
-    suspend fun count(): Int
-
-    @Query("SELECT * FROM blocklist WHERE domain IN (:domains) LIMIT 1")
-    suspend fun firstMatch(domains: List<String>): BlocklistEntity?
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsert(entries: List<BlocklistEntity>)
-
-    @Query("DELETE FROM blocklist WHERE domain IN (:domains)")
-    suspend fun remove(domains: List<String>)
-
-    @Query("DELETE FROM blocklist")
-    suspend fun clear()
-
-    @Transaction
-    suspend fun replaceAll(entries: List<BlocklistEntity>) {
-        clear()
-        entries.chunked(500).forEach { upsert(it) }
-    }
 }

@@ -7,7 +7,7 @@
 
 **TrustCheck** is an open-source Android security assistant by **Mesflit**. It detects
 suspicious links, phishing attempts, scam messages and potentially malicious websites — on your
-device first, and optionally with cloud threat intelligence.
+device, at zero running cost: no server, no paid API.
 
 > TrustCheck never claims a website is “safe”. The best verdict it gives is
 > **No known threat detected**, and it says clearly when a link’s reputation is **Unknown**.
@@ -20,11 +20,12 @@ device first, and optionally with cloud threat intelligence.
 |---|---|
 | **URL analysis engine** | Parsing and normalization (IDN/punycode, full-width characters, path normalization), IP and disguised-IP hosts, `user@host` tricks, homograph attacks (mixed and look-alike scripts), typosquatting and brand impersonation (~90 frequently targeted brands), URL shorteners, HTTP vs HTTPS, unusual ports, abused TLDs, lure words, embedded redirect parameters, sensitive parameters, executable downloads |
 | **Scam-message detection** | Urgency, credential/OTP requests, prize lures, and fee/payment requests, in all 9 supported languages |
-| **Threat intelligence** | TrustCheck-Backend (aggregates commercial-use feeds such as Google Web Risk server-side), optional user-supplied Google Safe Browsing v4 key, and a synced on-device blocklist |
+| **Daily threat list** | Known phishing domains from openly licensed sources (currently [Phishing.Database](https://github.com/Phishing-Database/Phishing.Database), MIT), built daily by GitHub Actions and published as a GitHub Release. The app downloads it, verifies its SHA-256 and checks links **on the device** — no scanned link is sent anywhere. Optional: your own Google Safe Browsing key |
+| **File scanning** | APKs (risky permissions, accessibility/SMS banking-trojan pattern, brand impersonation, test signatures), disguised file types and double extensions, scripts, macro documents, and links inside text, HTML, Office and PDF files (on-device OCR). Shows the SHA-256 with a one-tap VirusTotal lookup. Files are never opened, executed or uploaded |
 | **Notification monitoring** | Opt-in `NotificationListenerService` finds links in incoming notifications, checks them instantly on-device and warns you. Message text is never stored |
 | **Sharesheet & “Open with”** | Share text, links or screenshots to TrustCheck (on-device OCR via ML Kit), use “Check with TrustCheck” on selected text, or choose TrustCheck to open a link. Links are never opened automatically |
 | **Background automation** | WorkManager for deferred cloud lookups (network-aware, retried, deduplicated), daily threat-feed sync, history retention |
-| **Security reports** | Risk score 0–100, classification, indicators with explanations, recommended actions, sources checked, timestamp, optional AI explanation |
+| **Security reports** | Risk score 0–100, classification, indicators with explanations, recommended actions, sources checked, timestamp, file details |
 | **History** | Room database with search, filters, details, deletion, clear-all and configurable retention |
 | **9 languages** | English, Türkçe, Deutsch, Español, Français, Português (Brasil), العربية (RTL), 日本語, Русский — in-app selector, applied immediately |
 | **Monetization** | Every feature is free. AdMob banners (with UMP consent) outside security screens; an optional Premium subscription only removes ads |
@@ -55,7 +56,7 @@ Supported Android versions: **Android 8.0 (API 26) and newer**, targeting the la
 
 | Permission | Why | Required? |
 |---|---|---|
-| `INTERNET`, `ACCESS_NETWORK_STATE` | Optional cloud threat intelligence and AI, ads, billing | Offline analysis works without network |
+| `INTERNET`, `ACCESS_NETWORK_STATE` | Daily threat-list download from GitHub, optional Safe Browsing lookups, ads, billing | Offline analysis works without network |
 | Notification access (`BIND_NOTIFICATION_LISTENER_SERVICE`) | Find links in incoming notifications | Optional, granted by you in system settings |
 | `POST_NOTIFICATIONS` (Android 13+) | Show security alerts | Optional, requested in context |
 | `RECEIVE_BOOT_COMPLETED`, `WAKE_LOCK`, `FOREGROUND_SERVICE` | Added automatically by WorkManager so scheduled jobs survive reboots | — |
@@ -72,7 +73,8 @@ com.mesflit.trustcheck
 ├── core.security       Pure-Kotlin analysis engine (no Android imports; unit-tested on the JVM)
 ├── core.localization   Languages, locale switching, enum → string-resource mapping
 ├── core.database       Room entities and DAOs
-├── core.network        Backend client, threat-intel providers, redirect resolver, AI provider
+├── core.network        Threat list download/index, optional Safe Browsing, redirect resolver
+├── core.files          On-device file inspection (APK, Office, PDF, text, images)
 ├── core.design         Material 3 theme and shared components
 ├── core.ocr            ML Kit on-device text recognition
 ├── domain              Models, repository interfaces, ScanCoordinator
@@ -83,8 +85,19 @@ com.mesflit.trustcheck
 └── monetization        AdMob/UMP, Play Billing, entitlement logic
 ```
 
-More in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). The optional backend lives in a separate
-private repository, `mesflit/TrustCheck-Backend`. Its API contract is in [docs/BACKEND_API.md](docs/BACKEND_API.md).
+More in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+### Zero running cost
+
+| Part | How it is free |
+|---|---|
+| Analysis | Runs on the phone |
+| Threat list | Built by `.github/workflows/threat-feed.yml` (GitHub Actions is free for public repositories) and hosted as a GitHub Release asset |
+| Distribution | GitHub Releases |
+| Subscriptions | Verified on-device by Google Play Billing (no server) |
+
+An optional private backend (`mesflit/TrustCheck-Backend`, contract in [docs/BACKEND_API.md](docs/BACKEND_API.md))
+is supported but **not required**; the official build works without it.
 
 ### Background limitations (honest version)
 
@@ -96,13 +109,13 @@ TrustCheck cannot guarantee uninterrupted execution on every device. If alerts a
 
 ## Supported languages
 
-`en` (default and fallback), `tr`, `de`, `es`, `fr`, `pt-BR`, `ar` (RTL), `ja`, `ru`. All 288
+`en` (default and fallback), `tr`, `de`, `es`, `fr`, `pt-BR`, `ar` (RTL), `ja`, `ru`. All 358
 user-facing strings are translated in every locale; a unit test fails the build if a key or a
 placeholder is missing. To add or improve a translation, see [docs/TRANSLATIONS.md](docs/TRANSLATIONS.md).
 
 ## Monetization
 
-- **Everything is free.** Every feature — protection, AI explanations, history — is identical
+- **Everything is free.** Every feature — protection, file scanning, history — is identical
   for all users. **Premium only removes ads.**
 - **AdMob**: adaptive banners only at the bottom of the Dashboard and History lists, labelled
   “Advertisement”. No ads in scanner, report or alert screens, never during a scan, never for
@@ -137,6 +150,16 @@ Optional configuration (backend URL, AdMob IDs, signing) is in [docs/CONFIGURATI
 | [`android-ci.yml`](.github/workflows/android-ci.yml) | push/PR to `main`, manual | Source-only policy check, Gradle validation, unit tests, debug + release builds, debug APK artifact. Optional emulator UI tests (manual) |
 | [`android-release.yml`](.github/workflows/android-release.yml) | tag `v*`, manual with version | Tests, signed APK + AAB, signature verification, SHA-256 checksums, release notes, **published** GitHub Release with assets attached |
 
+## Threat list
+
+`threat-feed.yml` runs daily (and on demand), downloads the sources listed in
+`scripts/build_threat_feed.py`, normalizes and de-duplicates them, removes allowlisted domains
+(`threat-feed/allowlist.txt`, `threat-feed/hosting-suffixes.txt`) and uploads `feed.txt.gz` and
+`feed.json` to the `threat-feed` release (marked pre-release, so it never becomes “latest”).
+Sources are only added if their license permits use in an ad-supported app; see
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Run it once manually after the first push:
+**Actions → Threat feed → Run workflow**.
+
 ## Release process
 
 ```bash
@@ -155,9 +178,11 @@ are GitHub Actions artifacts. Production builds are GitHub Release assets.
 
 ## Privacy
 
-- Analysis runs on the device first. Cloud features are **off by default** and need your consent.
-- Only a privacy-reduced URL (scheme, host and path, without query, fragment or user info) is
-  sent for threat lookups.
+- Analysis runs on the device. Online lookups are **off by default** and need your consent.
+- Links are checked against the downloaded threat list **on the device**. Only if you add your own
+  Safe Browsing key is a privacy-reduced URL (scheme, host and path, without query, fragment or
+  user info) sent to Google.
+- Files are inspected on the device and never uploaded; the VirusTotal button shares only the SHA-256.
 - Notification text is processed in memory only. It is never stored, logged or uploaded.
 - History stays on the device, is excluded from backups and is deleted according to your retention setting.
 

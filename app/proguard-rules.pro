@@ -9,6 +9,12 @@
 }
 -keep,includedescriptorclasses class com.mesflit.trustcheck.core.network.dto.**$$serializer { *; }
 
+-keepclassmembers class com.mesflit.trustcheck.core.network.ThreatFeed* {
+    *** Companion;
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keep,includedescriptorclasses class com.mesflit.trustcheck.core.network.ThreatFeed*$$serializer { *; }
+
 # WorkManager workers are instantiated reflectively by class name.
 -keep class * extends androidx.work.ListenableWorker { <init>(...); }
 

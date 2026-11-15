@@ -6,7 +6,7 @@ reported separately and force **Confirmed malicious** (score ≥ 95).
 
 ## Classification rules (`RiskScorer.classify`)
 
-1. Any reputation source (synced blocklist, TrustCheck backend, Safe Browsing) returns **MATCH** → `CONFIRMED_MALICIOUS`.
+1. Any reputation source (daily threat list, Safe Browsing, optional backend) returns **MATCH** → `CONFIRMED_MALICIOUS`.
 2. Local score ≥ **40** → `SUSPICIOUS`.
 3. At least one reputation source answered **NO_MATCH** → `NO_KNOWN_THREAT`.
 4. Otherwise → `UNKNOWN`. Offline, unconfigured, timed-out or errored lookups are never treated as clean.
@@ -29,6 +29,34 @@ Unparseable input → `ANALYSIS_FAILED`.
 | HTTP, excessive encoding/subdomains, sensitive parameter, redirect to other domain | 10 | |
 | Lure words, many hyphens | 8 | |
 | Punycode, private network, long URL | 5 | Informational |
+
+## Files
+
+Files have no reputation source, so their verdict is **Suspicious** (score ≥ 40) or **Unknown**
+(no warning signs — never "safe"). Links found inside a file are analyzed and saved as their own
+reports; a dangerous one adds *Contains a dangerous link* to the file.
+
+| Indicator | Weight |
+|---|---|
+| APK named after a brand it does not belong to | 50 |
+| Double extension (`invoice.pdf.apk`), contains a dangerous link | 40 |
+| APK accessibility service | 35 |
+| Disguised type (content ≠ name), APK SMS access, banking-trojan pattern (SMS + accessibility/overlay) | 30 |
+| Macro document, APK device admin | 25 |
+| App/program, script | 20 |
+| APK overlay, installs apps, reads notifications | 15 |
+| APK signed with the public Android debug key | 10 |
+
+Type detection uses magic bytes (ZIP/APK/Office, PDF, PE, ELF, DEX, images, text). APK facts come
+from `PackageManager.getPackageArchiveInfo` on a private temporary copy that is deleted
+immediately; the APK is never installed. PDFs: first 3 pages rendered and OCR'd on-device.
+
+## Threat list
+
+Daily list built by `scripts/build_threat_feed.py`. On the device each domain is stored as the
+first 64 bits of its SHA-256 in a sorted file and looked up by binary search (host and every
+parent domain). A list older than 10 days is treated as unavailable, so outdated data never
+produces "No known threat detected".
 
 ## Known limitations
 

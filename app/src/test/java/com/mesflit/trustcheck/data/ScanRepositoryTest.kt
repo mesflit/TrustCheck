@@ -3,11 +3,9 @@ package com.mesflit.trustcheck.data
 import android.app.Application
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import com.mesflit.trustcheck.core.database.BlocklistEntity
 import com.mesflit.trustcheck.core.database.TrustCheckDatabase
 import com.mesflit.trustcheck.core.security.RiskClassification
 import com.mesflit.trustcheck.core.security.UrlAnalysisEngine
-import com.mesflit.trustcheck.domain.AiExplanation
 import com.mesflit.trustcheck.domain.ScanOrigin
 import com.mesflit.trustcheck.domain.TargetType
 import com.mesflit.trustcheck.domain.UserAction
@@ -66,22 +64,13 @@ class ScanRepositoryTest {
         assertEquals(0, repo.observeStats().first().total)
     }
 
-    @Test fun userActionAiAndRetention() = runTest {
+    @Test fun userActionAndRetention() = runTest {
         val id = repo.save(engine.analyzeLocally("https://example.com/"), TargetType.URL, ScanOrigin.MANUAL, null)
         repo.setUserAction(id, UserAction.OPENED_ANYWAY)
-        repo.attachAi(id, AiExplanation("suspicious", 70, "summary", emptyList(), listOf("x"), "en", "model", 5))
         val rec = repo.get(id)!!
         assertEquals(UserAction.OPENED_ANYWAY, rec.userAction)
-        assertEquals("summary", rec.ai?.summary)
         assertNotNull(repo.findRecent("https://example.com/", 0))
         assertEquals(1, repo.purgeOlderThan(2_000))
     }
 
-    @Test fun blocklistMatchesParents() = runTest {
-        val bl = RoomBlocklist(db.blocklistDao())
-        assertTrue(bl.isEmpty())
-        bl.replaceAll(listOf(BlocklistEntity("bad.example", "phishing", "feed", 0)))
-        assertEquals("phishing@feed", bl.match(listOf("login.bad.example", "bad.example")))
-        assertNull(bl.match(listOf("good.example")))
-    }
 }

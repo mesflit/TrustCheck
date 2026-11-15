@@ -12,6 +12,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.mesflit.trustcheck.R
 import com.mesflit.trustcheck.core.design.TrustCheckTheme
 import com.mesflit.trustcheck.core.localization.AppLanguage
+import com.mesflit.trustcheck.core.network.ThreatFeedStatus
 import com.mesflit.trustcheck.core.security.UrlAnalysisEngine
 import com.mesflit.trustcheck.domain.AppSettings
 import com.mesflit.trustcheck.domain.ScanOutcome
@@ -72,7 +73,7 @@ class ScreenContentTest {
             TrustCheckTheme {
                 SettingsContent(
                     settings = AppSettings(), entitlement = Entitlement.FREE, notificationAccess = false,
-                    postNotificationsGranted = true, backendConfigured = false, showAdPrivacy = false,
+                    postNotificationsGranted = true, feedStatus = ThreatFeedStatus(null, 0, 0, null), feedUpdating = false, onUpdateFeed = {}, showAdPrivacy = false,
                     onUpdate = {}, onLanguage = { chosen = it }, onOpenAccessSettings = {}, onRequestPostNotifications = {},
                     onOpenBatterySettings = {}, onAdPrivacy = {}, onClearHistory = {}, onOpenPremium = {}, onOpenUrl = {},
                 )
@@ -90,7 +91,7 @@ class ScreenContentTest {
             TrustCheckTheme {
                 SettingsContent(
                     settings = AppSettings(), entitlement = Entitlement.FREE, notificationAccess = false,
-                    postNotificationsGranted = false, backendConfigured = false, showAdPrivacy = false,
+                    postNotificationsGranted = false, feedStatus = ThreatFeedStatus(null, 0, 0, null), feedUpdating = false, onUpdateFeed = {}, showAdPrivacy = false,
                     onUpdate = {}, onLanguage = {}, onOpenAccessSettings = {}, onRequestPostNotifications = {},
                     onOpenBatterySettings = {}, onAdPrivacy = {}, onClearHistory = {}, onOpenPremium = {}, onOpenUrl = {},
                 )
@@ -98,6 +99,16 @@ class ScreenContentTest {
         }
         compose.onNodeWithText(ctx.getString(R.string.settings_access_missing)).assertIsDisplayed()
         compose.onNodeWithText(ctx.getString(R.string.settings_post_notifications_missing)).assertExists()
+        compose.onNodeWithText(ctx.getString(R.string.settings_feed_never)).assertExists()
+    }
+
+    @Test fun scannerOffersFileScanning() {
+        var picked = false
+        compose.setContent {
+            TrustCheckTheme { ScannerContent(ScannerState(), {}, {}, {}, {}, {}, onPickFile = { picked = true }) }
+        }
+        compose.onNodeWithTag("scanner_file").performClick()
+        assertTrue(picked)
     }
 
     @Test fun premiumShowsOnlyPlayProvidedPricesAndHonestStatus() {

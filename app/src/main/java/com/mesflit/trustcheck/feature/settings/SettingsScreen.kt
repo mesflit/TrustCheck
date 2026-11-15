@@ -17,12 +17,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -56,6 +58,8 @@ import com.mesflit.trustcheck.BuildConfig
 import com.mesflit.trustcheck.MainActivity
 import com.mesflit.trustcheck.R
 import com.mesflit.trustcheck.core.design.SectionCard
+import com.mesflit.trustcheck.core.design.rememberDateTimeFormatter
+import com.mesflit.trustcheck.core.network.ThreatFeedStatus
 import com.mesflit.trustcheck.core.localization.AppLanguage
 import com.mesflit.trustcheck.core.localization.LocaleController
 import com.mesflit.trustcheck.domain.AppSettings
@@ -65,19 +69,27 @@ import com.mesflit.trustcheck.monetization.Entitlement
 import com.mesflit.trustcheck.monetization.PremiumPolicy
 import com.mesflit.trustcheck.ui.LocalAppContainer
 import com.mesflit.trustcheck.ui.containerViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class SettingsViewModel(private val c: AppContainer) : ViewModel() {
     val settings: StateFlow<AppSettings?> = c.settings.settings.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
-    val backendConfigured = c.backend.isConfigured
+    val feedStatus = MutableStateFlow(c.threatFeed.status())
+    val feedUpdating: StateFlow<Boolean> = c.scheduler.threatFeedUpdating()
+        .onEach { running -> if (!running) feedStatus.value = c.threatFeed.status() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    fun refreshFeedStatus() { feedStatus.value = c.threatFeed.status() }
+    fun updateFeedNow() = c.scheduler.updateThreatFeedNow(force = true)
 
     fun update(transform: (AppSettings) -> AppSettings) = viewModelScope.launch {
         c.settings.update(transform)
         val s = c.settings.current()
-        c.scheduler.schedulePeriodic(s, c.backend.isConfigured)
+        c.scheduler.schedulePeriodic(s, firstFeedNeeded = c.threatFeed.status().count == 0)
         if (!s.cloudThreatIntel && !s.resolveRedirects) c.scheduler.cancelAllScans()
     }
 
@@ -104,6 +116,9 @@ fun SettingsScreen(activity: MainActivity, onOpenPremium: () -> Unit) {
         access = hasNotificationAccess(context)
         postGranted = postNotificationsGranted(context)
     }
+    val feedStatus by vm.feedStatus.collectAsStateWithLifecycle()
+    val feedUpdating by vm.feedUpdating.collectAsStateWithLifecycle()
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { vm.refreshFeedStatus() }
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { postGranted = it }
 
     val current = s ?: return
@@ -112,7 +127,9 @@ fun SettingsScreen(activity: MainActivity, onOpenPremium: () -> Unit) {
         entitlement = entitlement,
         notificationAccess = access,
         postNotificationsGranted = postGranted,
-        backendConfigured = vm.backendConfigured,
+        feedStatus = feedStatus,
+        feedUpdating = feedUpdating,
+        onUpdateFeed = vm::updateFeedNow,
         showAdPrivacy = privacyOptions,
         onUpdate = { vm.update(it) },
         onLanguage = vm::setLanguage,
@@ -141,7 +158,9 @@ fun SettingsContent(
     entitlement: Entitlement,
     notificationAccess: Boolean,
     postNotificationsGranted: Boolean,
-    backendConfigured: Boolean,
+    feedStatus: ThreatFeedStatus,
+    feedUpdating: Boolean,
+    onUpdateFeed: () -> Unit,
     showAdPrivacy: Boolean,
     onUpdate: ((AppSettings) -> AppSettings) -> Unit,
     onLanguage: (AppLanguage) -> Unit,
@@ -188,9 +207,29 @@ fun SettingsContent(
             }
         }
 
+        SectionCard(title = stringResource(R.string.settings_section_feed)) {
+            SwitchRow(stringResource(R.string.settings_feed), stringResource(R.string.settings_feed_desc), settings.threatFeed, Modifier.testTag("settings_feed")) { v -> onUpdate { it.copy(threatFeed = v) } }
+            val dateFormat = rememberDateTimeFormatter()
+            Text(
+                if (feedStatus.count > 0) stringResource(R.string.settings_feed_status, dateFormat(feedStatus.updatedAt), feedStatus.count)
+                else stringResource(R.string.settings_feed_never),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.testTag("settings_feed_status"),
+            )
+            feedStatus.sources?.let { Text(stringResource(R.string.settings_feed_sources, it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            if (feedUpdating) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.settings_feed_updating), style = MaterialTheme.typography.bodySmall)
+                }
+            } else {
+                TextButton(onClick = onUpdateFeed, enabled = settings.threatFeed) { Text(stringResource(R.string.settings_feed_update_now)) }
+            }
+        }
+
         SectionCard(title = stringResource(R.string.settings_section_privacy)) {
-            SwitchRow(stringResource(R.string.settings_cloud_ti), stringResource(R.string.settings_cloud_ti_desc), settings.cloudThreatIntel, Modifier.testTag("settings_cloud_ti")) { v -> onUpdate { it.copy(cloudThreatIntel = v) } }
-            SwitchRow(stringResource(R.string.settings_cloud_ai), stringResource(R.string.settings_cloud_ai_desc), settings.cloudAi) { v -> onUpdate { it.copy(cloudAi = v) } }
             SwitchRow(stringResource(R.string.settings_redirects), stringResource(R.string.settings_redirects_desc), settings.resolveRedirects) { v -> onUpdate { it.copy(resolveRedirects = v) } }
             SwitchRow(stringResource(R.string.settings_keep_clean), stringResource(R.string.settings_keep_clean_desc), settings.keepCleanNotificationScans) { v -> onUpdate { it.copy(keepCleanNotificationScans = v) } }
             SwitchRow(stringResource(R.string.settings_diagnostics), stringResource(R.string.settings_diagnostics_desc), settings.diagnostics) { v -> onUpdate { it.copy(diagnostics = v) } }
@@ -203,11 +242,8 @@ fun SettingsContent(
             TextButton(onClick = onOpenBatterySettings) { Text(stringResource(R.string.settings_battery_settings)) }
         }
 
-        SectionCard(title = stringResource(R.string.settings_section_ai)) {
-            Text(
-                stringResource(if (backendConfigured) R.string.settings_backend_status_configured else R.string.settings_backend_status_missing),
-                style = MaterialTheme.typography.bodySmall,
-            )
+        SectionCard(title = stringResource(R.string.settings_section_online)) {
+            SwitchRow(stringResource(R.string.settings_cloud_ti), stringResource(R.string.settings_cloud_ti_desc), settings.cloudThreatIntel, Modifier.testTag("settings_cloud_ti")) { v -> onUpdate { it.copy(cloudThreatIntel = v) } }
             var key by rememberSaveable(settings.safeBrowsingApiKey) { mutableStateOf(settings.safeBrowsingApiKey) }
             Text(stringResource(R.string.settings_sb_key_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             OutlinedTextField(

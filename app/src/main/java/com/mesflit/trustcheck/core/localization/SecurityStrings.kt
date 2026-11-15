@@ -37,6 +37,20 @@ object SecurityStrings {
         RiskClassification.ANALYSIS_FAILED -> listOf(R.string.rec_failed_check_input)
     }
 
+    /** Files have no reputation source, so their best verdict is "no warning signs" (UNKNOWN). */
+    @StringRes fun fileClassificationDescription(c: RiskClassification): Int = when (c) {
+        RiskClassification.SUSPICIOUS, RiskClassification.CONFIRMED_MALICIOUS -> R.string.file_class_suspicious_desc
+        RiskClassification.ANALYSIS_FAILED -> R.string.class_failed_desc
+        else -> R.string.file_class_clean_desc
+    }
+
+    fun fileRecommendations(c: RiskClassification): List<Int> = when (c) {
+        RiskClassification.SUSPICIOUS, RiskClassification.CONFIRMED_MALICIOUS ->
+            listOf(R.string.rec_file_do_not_open, R.string.rec_file_delete, R.string.rec_file_official_store)
+        RiskClassification.ANALYSIS_FAILED -> listOf(R.string.rec_failed_check_input)
+        else -> listOf(R.string.rec_file_official_store, R.string.rec_file_lookup, R.string.rec_still_careful)
+    }
+
     @StringRes fun indicatorTitle(i: Indicator): Int = when (i) {
         Indicator.DANGEROUS_SCHEME -> R.string.ind_dangerous_scheme
         Indicator.USERINFO_IN_URL -> R.string.ind_userinfo
@@ -68,6 +82,21 @@ object SecurityStrings {
         Indicator.CREDENTIAL_REQUEST -> R.string.ind_credentials
         Indicator.PRIZE_OR_MONEY_LURE -> R.string.ind_prize
         Indicator.PAYMENT_OR_FEE_REQUEST -> R.string.ind_payment
+        Indicator.DOUBLE_EXTENSION -> R.string.ind_double_ext
+        Indicator.EXTENSION_MISMATCH -> R.string.ind_ext_mismatch
+        Indicator.EXECUTABLE_FILE -> R.string.ind_executable_file
+        Indicator.SCRIPT_FILE -> R.string.ind_script
+        Indicator.MACRO_DOCUMENT -> R.string.ind_macro
+        Indicator.FILE_CONTAINS_DANGEROUS_LINK -> R.string.ind_file_link
+        Indicator.APK_SMS_ACCESS -> R.string.ind_apk_sms
+        Indicator.APK_ACCESSIBILITY_SERVICE -> R.string.ind_apk_a11y
+        Indicator.APK_DEVICE_ADMIN -> R.string.ind_apk_admin
+        Indicator.APK_SCREEN_OVERLAY -> R.string.ind_apk_overlay
+        Indicator.APK_INSTALLS_APPS -> R.string.ind_apk_install
+        Indicator.APK_NOTIFICATION_ACCESS -> R.string.ind_apk_notif
+        Indicator.APK_BANKING_TROJAN_PATTERN -> R.string.ind_apk_trojan
+        Indicator.APK_BRAND_IMPERSONATION -> R.string.ind_apk_brand
+        Indicator.APK_DEBUG_SIGNED -> R.string.ind_apk_debug
         Indicator.BLOCKLIST_MATCH -> R.string.ind_blocklist
         Indicator.THREAT_INTEL_MATCH -> R.string.ind_threat_intel
     }
@@ -103,6 +132,21 @@ object SecurityStrings {
         Indicator.CREDENTIAL_REQUEST -> R.string.ind_credentials_desc
         Indicator.PRIZE_OR_MONEY_LURE -> R.string.ind_prize_desc
         Indicator.PAYMENT_OR_FEE_REQUEST -> R.string.ind_payment_desc
+        Indicator.DOUBLE_EXTENSION -> R.string.ind_double_ext_desc
+        Indicator.EXTENSION_MISMATCH -> R.string.ind_ext_mismatch_desc
+        Indicator.EXECUTABLE_FILE -> R.string.ind_executable_file_desc
+        Indicator.SCRIPT_FILE -> R.string.ind_script_desc
+        Indicator.MACRO_DOCUMENT -> R.string.ind_macro_desc
+        Indicator.FILE_CONTAINS_DANGEROUS_LINK -> R.string.ind_file_link_desc
+        Indicator.APK_SMS_ACCESS -> R.string.ind_apk_sms_desc
+        Indicator.APK_ACCESSIBILITY_SERVICE -> R.string.ind_apk_a11y_desc
+        Indicator.APK_DEVICE_ADMIN -> R.string.ind_apk_admin_desc
+        Indicator.APK_SCREEN_OVERLAY -> R.string.ind_apk_overlay_desc
+        Indicator.APK_INSTALLS_APPS -> R.string.ind_apk_install_desc
+        Indicator.APK_NOTIFICATION_ACCESS -> R.string.ind_apk_notif_desc
+        Indicator.APK_BANKING_TROJAN_PATTERN -> R.string.ind_apk_trojan_desc
+        Indicator.APK_BRAND_IMPERSONATION -> R.string.ind_apk_brand_desc
+        Indicator.APK_DEBUG_SIGNED -> R.string.ind_apk_debug_desc
         Indicator.BLOCKLIST_MATCH -> R.string.ind_blocklist_desc
         Indicator.THREAT_INTEL_MATCH -> R.string.ind_threat_intel_desc
     }
@@ -113,8 +157,8 @@ object SecurityStrings {
         AnalysisSource.TRUSTCHECK_BACKEND -> R.string.src_backend
         AnalysisSource.GOOGLE_SAFE_BROWSING -> R.string.src_safe_browsing
         AnalysisSource.REDIRECT_RESOLVER -> R.string.src_redirects
-        AnalysisSource.CLOUD_AI -> R.string.src_ai
         AnalysisSource.ON_DEVICE_OCR -> R.string.src_ocr
+        AnalysisSource.FILE_INSPECTION -> R.string.src_file
     }
 
     @StringRes fun sourceStatus(s: SourceStatus): Int = when (s) {
@@ -132,5 +176,6 @@ object SecurityStrings {
         ScanOrigin.LINK_OPEN -> R.string.origin_link
         ScanOrigin.TEXT_SELECTION -> R.string.origin_selection
         ScanOrigin.NOTIFICATION -> R.string.origin_notification
+        ScanOrigin.FILE -> R.string.origin_file
     }
 }

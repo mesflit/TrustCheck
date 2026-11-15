@@ -5,9 +5,7 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.mesflit.trustcheck.TrustCheckApp
-import com.mesflit.trustcheck.core.database.BlocklistEntity
-import com.mesflit.trustcheck.core.network.ApiResult
-import com.mesflit.trustcheck.core.network.dto.BlocklistResponse
+import com.mesflit.trustcheck.core.network.ThreatFeedStore
 import com.mesflit.trustcheck.core.security.AnalysisOptions
 import com.mesflit.trustcheck.core.security.AnalysisSource
 import com.mesflit.trustcheck.core.security.ResultMerger
@@ -73,39 +71,20 @@ class HistoryRetentionWorker(context: Context, params: WorkerParameters) : Corou
 }
 
 /**
- * Syncs the domain blocklist from TrustCheck-Backend (aggregated from public/commercial threat
- * feeds server-side). Only runs when the backend is configured and the user consented to cloud
- * threat intelligence. Without it, the local blocklist stays empty — nothing is bundled.
+ * Downloads the daily threat list published by this repository's `threat-feed` workflow
+ * (GitHub Release asset — free, no server). Links are then checked on the device only.
  */
 class ThreatFeedSyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
         val c = (applicationContext as TrustCheckApp).container
-        if (!c.backend.isConfigured || !c.settings.current().cloudThreatIntel) return Result.success()
-        val prefs = applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val since = prefs.getString(KEY_VERSION, null)
-        val query = if (since != null) mapOf("since" to since) else emptyMap()
-        return when (val r = c.backend.get("v1/blocklist", query, BlocklistResponse.serializer())) {
-            is ApiResult.Ok -> {
-                val now = System.currentTimeMillis()
-                val entries = r.value.added.mapNotNull { e ->
-                    val d = e.domain.trim().lowercase().trimEnd('.')
-                    if (d.isEmpty() || d.length > 253 || !d.contains('.')) null else BlocklistEntity(d, e.category, e.source, now)
-                }
-                if (r.value.full) c.blocklist.replaceAll(entries) else {
-                    c.blocklist.upsert(entries)
-                    if (r.value.removed.isNotEmpty()) c.blocklist.remove(r.value.removed.map { it.lowercase() })
-                }
-                prefs.edit().putString(KEY_VERSION, r.value.version).apply()
-                Result.success()
-            }
-            ApiResult.NotConfigured -> Result.success()
-            ApiResult.RateLimited, is ApiResult.NetworkError -> if (runAttemptCount < 3) Result.retry() else Result.success()
-            is ApiResult.HttpError -> Result.success()
+        if (!c.settings.current().threatFeed) return Result.success()
+        return when (val r = c.threatFeed.sync(force = inputData.getBoolean(KEY_FORCE, false))) {
+            is ThreatFeedStore.SyncResult.Updated, ThreatFeedStore.SyncResult.UpToDate -> Result.success()
+            is ThreatFeedStore.SyncResult.Failed -> if (r.retryable && runAttemptCount < 3) Result.retry() else Result.failure()
         }
     }
 
     companion object {
-        private const val PREFS = "threat_feed"
-        private const val KEY_VERSION = "version"
+        const val KEY_FORCE = "force"
     }
 }

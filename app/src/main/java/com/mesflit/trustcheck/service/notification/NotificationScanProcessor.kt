@@ -1,6 +1,7 @@
 // TrustCheck — Copyright (C) 2026 Mesflit — SPDX-License-Identifier: GPL-3.0-only
 package com.mesflit.trustcheck.service.notification
 
+import com.mesflit.trustcheck.core.security.AnalysisOptions
 import com.mesflit.trustcheck.core.security.DetectedIndicator
 import com.mesflit.trustcheck.core.security.ResultMerger
 import com.mesflit.trustcheck.core.security.RiskClassification
@@ -14,7 +15,7 @@ import com.mesflit.trustcheck.service.background.WorkScheduler
 
 /**
  * Two-stage pipeline for links found in notifications:
- *  1. Instant on-device analysis (works offline, no data leaves the device).
+ *  1. Instant on-device analysis incl. the daily threat list (works offline, no data leaves the device).
  *  2. Optional deferred cloud lookup through WorkManager (network-aware, retried, deduplicated).
  */
 class NotificationScanProcessor(
@@ -34,7 +35,8 @@ class NotificationScanProcessor(
             if (!dedup.tryAcquire(key, now)) continue
             if (scans.findRecent(key, now - RECENT_WINDOW_MS) != null) continue
 
-            val local = ResultMerger.withTextSignals(engine.analyzeLocally(url), textIndicators)
+            // Offline pass: heuristics + the on-device threat list (no network involved).
+            val local = ResultMerger.withTextSignals(engine.analyze(url, OFFLINE), textIndicators)
             if (local.classification == RiskClassification.ANALYSIS_FAILED) continue
             settings.incrementTotalScans()
 
@@ -50,5 +52,6 @@ class NotificationScanProcessor(
 
     companion object {
         const val RECENT_WINDOW_MS = 10 * 60 * 1000L
+        private val OFFLINE = AnalysisOptions(allowNetwork = false, resolveRedirects = false)
     }
 }

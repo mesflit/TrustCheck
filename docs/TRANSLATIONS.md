@@ -37,5 +37,4 @@ and product names (TrustCheck, Google Play, Google Safe Browsing) untranslated.
 4. Add the language’s phrases to `ScamTextAnalyzer` (urgency, credentials, prizes, payments).
 5. `generateLocaleConfig` picks the folder up automatically for Android’s per-app language settings.
 
-Notifications and AI explanations follow the selected language (`LocaleController.localizedContext`
-and the `language` field sent to the AI backend).
+Notifications and security reports follow the selected language (`LocaleController.localizedContext`).

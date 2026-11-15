@@ -1,0 +1,59 @@
+# TrustCheck — daily threat list, built and hosted for free on GitHub.
+#
+# Downloads openly licensed phishing lists, normalizes them, removes allowlisted domains and
+# publishes feed.txt.gz + feed.json as assets of the `threat-feed` GitHub Release. The app
+# downloads them directly (no server, no API key) and checks links on the device.
+name: Threat feed
+
+on:
+  schedule:
+    - cron: "17 3 * * *"   # daily, 03:17 UTC
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/build_threat_feed.py"
+      - "threat-feed/**"
+      - ".github/workflows/threat-feed.yml"
+
+permissions:
+  contents: write   # create/update the `threat-feed` release assets
+
+concurrency:
+  group: threat-feed
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build feed
+        run: python3 scripts/build_threat_feed.py out threat-feed/allowlist.txt
+
+      - name: Publish to the threat-feed release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release view threat-feed > /dev/null 2>&1; then
+            gh release create threat-feed --prerelease --latest=false --target "$GITHUB_SHA" \
+              --title "Threat feed (updated daily)" \
+              --notes "Automatically generated daily by .github/workflows/threat-feed.yml. Not an app release. Sources and licenses are listed in feed.json and in the header of feed.txt.gz."
+          fi
+          # Upload the data first and the metadata last, so clients never see metadata pointing to a missing file.
+          gh release upload threat-feed out/feed.txt.gz --clobber
+          gh release upload threat-feed out/feed.json --clobber
+          {
+            echo "## Threat feed published"
+            echo '```json'
+            cat out/feed.json
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -2,30 +2,16 @@
 package com.mesflit.trustcheck.domain
 
 import com.mesflit.trustcheck.core.localization.AppLanguage
-import com.mesflit.trustcheck.core.network.DailyQuota
 import com.mesflit.trustcheck.core.security.DetectedIndicator
+import com.mesflit.trustcheck.core.security.FileFacts
 import com.mesflit.trustcheck.core.security.RiskClassification
 import com.mesflit.trustcheck.core.security.SourceResult
 
-enum class TargetType { URL, TEXT }
+enum class TargetType { URL, TEXT, FILE }
 
-enum class ScanOrigin { MANUAL, SHARE_TEXT, SHARE_IMAGE, LINK_OPEN, TEXT_SELECTION, NOTIFICATION }
+enum class ScanOrigin { MANUAL, SHARE_TEXT, SHARE_IMAGE, LINK_OPEN, TEXT_SELECTION, NOTIFICATION, FILE }
 
 enum class UserAction { NONE, OPENED_ANYWAY, DISMISSED }
-
-data class AiIndicatorNote(val code: String, val explanation: String)
-
-/** Structured, provider-independent AI explanation. Only ever produced by a real AI response. */
-data class AiExplanation(
-    val verdict: String,
-    val riskScore: Int?,
-    val summary: String,
-    val notes: List<AiIndicatorNote>,
-    val recommendations: List<String>,
-    val language: String,
-    val model: String,
-    val createdAt: Long,
-)
 
 data class ScanRecord(
     val id: Long,
@@ -41,7 +27,8 @@ data class ScanRecord(
     val origin: ScanOrigin,
     val sourceApp: String?,
     val userAction: UserAction,
-    val ai: AiExplanation?,
+    /** File metadata (name, size, type, SHA-256, APK facts) for FILE scans; never file contents. */
+    val file: FileFacts? = null,
     val timestamp: Long,
 )
 
@@ -56,10 +43,10 @@ data class AppSettings(
     /** In-app switch; the system Notification Access grant is required as well. */
     val notificationMonitoring: Boolean = false,
     val alertsEnabled: Boolean = true,
-    /** Consent to send privacy-reduced URLs to threat-intelligence services. */
+    /** Download the daily threat list from GitHub and check links against it on the device. */
+    val threatFeed: Boolean = true,
+    /** Consent to send privacy-reduced URLs to online lookup services (own Safe Browsing key / optional backend). */
     val cloudThreatIntel: Boolean = false,
-    /** Consent to send content to the AI explanation service when the user asks for it. */
-    val cloudAi: Boolean = false,
     /** Contact URL shorteners (HEAD request only) to reveal the destination. */
     val resolveRedirects: Boolean = false,
     /** Keep notification links with no warning signs in history (default: only warnings are kept). */
@@ -69,6 +56,5 @@ data class AppSettings(
     val diagnostics: Boolean = false,
     /** User-supplied Google Safe Browsing key (stored only on this device). */
     val safeBrowsingApiKey: String = "",
-    val aiQuota: DailyQuota = DailyQuota(0, 0),
     val totalScans: Long = 0,
 )
