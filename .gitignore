@@ -1,0 +1,54 @@
+# ---- Build outputs (never commit) ----
+build/
+*/build/
+.gradle/
+.kotlin/
+captures/
+.externalNativeBuild/
+.cxx/
+out/
+
+# ---- Binaries (source-only repository policy) ----
+*.apk
+*.aab
+*.apks
+*.ap_
+*.dex
+*.class
+*.jar
+*.aar
+*.so
+output-metadata.json
+# The Gradle wrapper JAR is a binary; CI pins Gradle via gradle/actions/setup-gradle.
+gradle/wrapper/gradle-wrapper.jar
+
+# ---- Signing material & secrets (never commit) ----
+*.jks
+*.keystore
+*.p12
+*.pem
+*.key
+keystore.properties
+signing.properties
+google-services.json
+service-account*.json
+play-store-credentials*.json
+.env
+.env.*
+secrets/
+
+# ---- Local configuration ----
+local.properties
+*.iml
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ---- Local user data / logs ----
+*.db
+*.db-shm
+*.db-wal
+*.log
+*.hprof
+release-assets/

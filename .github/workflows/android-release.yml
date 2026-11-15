@@ -1,0 +1,221 @@
+# TrustCheck — signed release pipeline.
+#
+# Trigger: push a tag matching v* (e.g. v0.1.0), or run manually with a version.
+# Result:  a PUBLISHED GitHub Release with the signed APK, signed AAB and SHA-256 checksums
+#          attached. Binaries are never committed to the repository.
+#
+# Required secrets: ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS,
+#                   ANDROID_KEY_PASSWORD
+# Optional secrets: ADMOB_APP_ID, ADMOB_BANNER_ID, ADMOB_REWARDED_ID (ads stay disabled without them)
+# Optional variable: TRUSTCHECK_BACKEND_URL (repository variable; cloud features off without it)
+name: Android Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, without the leading v (e.g. 0.2.0). Tags the current commit."
+        required: true
+        type: string
+
+permissions:
+  contents: write   # create the tag/release and upload assets
+
+concurrency:
+  group: release-${{ github.ref }}-${{ inputs.version || github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  GRADLE_VERSION: "8.14.3"
+  ANDROID_PLATFORM: "platforms;android-36"
+  ANDROID_BUILD_TOOLS: "build-tools;36.0.0"
+
+jobs:
+  release:
+    name: Build, sign & publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Resolve version
+        id: v
+        env:
+          EVENT: ${{ github.event_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+          REF_NAME: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+        run: |
+          if [ "$EVENT" = "push" ]; then TAG="$REF_NAME"; REF="refs/tags/$REF_NAME"; else TAG="v${INPUT_VERSION#v}"; REF="$SHA"; fi
+          if ! [[ "$TAG" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::'$TAG' is not a valid version tag. Use vMAJOR.MINOR.PATCH, e.g. v0.1.0 or v1.0.0-beta.1"; exit 1
+          fi
+          MAJOR=${BASH_REMATCH[1]}; MINOR=${BASH_REMATCH[2]}; PATCH=${BASH_REMATCH[3]}
+          if [ "$MINOR" -gt 999 ] || [ "$PATCH" -gt 999 ] || [ "$MAJOR" -gt 2000 ]; then echo "::error::Version component too large"; exit 1; fi
+          # Monotonic versionCode derived from semver (MAJOR*1e6 + MINOR*1e3 + PATCH).
+          CODE=$(( MAJOR * 1000000 + MINOR * 1000 + PATCH ))
+          PRE=false; [[ "$TAG" == *-* ]] && PRE=true
+          {
+            echo "tag=$TAG"; echo "version=${TAG#v}"; echo "code=$CODE"; echo "ref=$REF"; echo "prerelease=$PRE"
+          } >> "$GITHUB_OUTPUT"
+          echo "Releasing $TAG (versionCode $CODE, prerelease=$PRE) from $REF"
+
+      - name: Check out the exact tagged source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.v.outputs.ref }}
+          fetch-depth: 0
+
+      - name: Refuse to overwrite an existing release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.v.outputs.tag }}
+        run: |
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            echo "::error::A release for $TAG already exists. Bump the version instead of re-publishing."; exit 1
+          fi
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && git rev-parse -q --verify "refs/tags/$TAG" > /dev/null; then
+            echo "::error::Tag $TAG already exists. Push that tag's release via the tag trigger or choose a new version."; exit 1
+          fi
+
+      - name: Check signing secrets
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          missing=()
+          [ -n "$KS_B64" ]    || missing+=("ANDROID_KEYSTORE_BASE64")
+          [ -n "$KS_PASS" ]   || missing+=("ANDROID_KEYSTORE_PASSWORD")
+          [ -n "$KEY_ALIAS" ] || missing+=("ANDROID_KEY_ALIAS")
+          [ -n "$KEY_PASS" ]  || missing+=("ANDROID_KEY_PASSWORD")
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::Production signing is not configured. Missing repository secrets: ${missing[*]}"
+            {
+              echo "## ❌ Release not created"
+              echo "Missing GitHub Actions secrets: \`${missing[*]}\`."
+              echo "No unsigned binaries were published. See docs/RELEASING.md → Signing setup."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        run: |
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses > /dev/null
+          "$SDKMANAGER" --install "$ANDROID_PLATFORM" "$ANDROID_BUILD_TOOLS" "platform-tools" > /dev/null
+
+      - name: Set up Gradle (restore dependency cache)
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: ${{ env.GRADLE_VERSION }}
+          cache-read-only: true
+
+      - name: Run tests
+        run: gradle --no-daemon --stacktrace :app:testDebugUnitTest
+
+      - name: Decode keystore
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          KS="$RUNNER_TEMP/trustcheck-release.jks"
+          printf '%s' "$KS_B64" | base64 --decode > "$KS"
+          chmod 600 "$KS"
+          echo "TRUSTCHECK_KEYSTORE_FILE=$KS" >> "$GITHUB_ENV"
+
+      - name: Build signed release APK and AAB
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ADMOB_APP_ID: ${{ secrets.ADMOB_APP_ID }}
+          ADMOB_BANNER_ID: ${{ secrets.ADMOB_BANNER_ID }}
+          ADMOB_REWARDED_ID: ${{ secrets.ADMOB_REWARDED_ID }}
+          TRUSTCHECK_BACKEND_URL: ${{ vars.TRUSTCHECK_BACKEND_URL }}
+          TRUSTCHECK_VERSION_NAME: ${{ steps.v.outputs.version }}
+          TRUSTCHECK_VERSION_CODE: ${{ steps.v.outputs.code }}
+        run: gradle --no-daemon --stacktrace :app:assembleRelease :app:bundleRelease
+
+      - name: Verify signed artifacts
+        id: files
+        env:
+          TAG: ${{ steps.v.outputs.tag }}
+        run: |
+          APK=app/build/outputs/apk/release/app-release.apk
+          AAB=app/build/outputs/bundle/release/app-release.aab
+          if [ ! -f "$APK" ]; then
+            ls -l app/build/outputs/apk/release/ || true
+            echo "::error::Signed APK not found (an *-unsigned.apk means signing was not applied)."; exit 1
+          fi
+          [ -f "$AAB" ] || { echo "::error::AAB not found"; exit 1; }
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          "$BT/apksigner" verify --verbose --print-certs "$APK" | grep -E "Verified using|Signer #1 certificate (DN|SHA-256)"
+          jarsigner -verify "$AAB" > /tmp/aab-verify.txt 2>&1 && grep -q "jar verified" /tmp/aab-verify.txt \
+            || { cat /tmp/aab-verify.txt; echo "::error::AAB signature verification failed"; exit 1; }
+          "$BT/aapt2" dump badging "$APK" | grep -E "^package:"
+          mkdir -p release-assets
+          cp "$APK" "release-assets/TrustCheck-$TAG.apk"
+          cp "$AAB" "release-assets/TrustCheck-$TAG.aab"
+          cd release-assets
+          for f in TrustCheck-$TAG.apk TrustCheck-$TAG.aab; do sha256sum "$f" > "$f.sha256"; done
+          sha256sum TrustCheck-$TAG.apk TrustCheck-$TAG.aab > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Generate release notes
+        env:
+          TAG: ${{ steps.v.outputs.tag }}
+        run: |
+          PREV=$(git describe --tags --abbrev=0 --match 'v*' HEAD^ 2>/dev/null || true)
+          RANGE=${PREV:+$PREV..HEAD}
+          {
+            echo "## TrustCheck $TAG"
+            echo
+            echo "### Changes"
+            git log ${RANGE:-HEAD} --no-merges --pretty='- %s (%h)' | head -200
+            echo
+            echo "### Downloads"
+            echo "- \`TrustCheck-$TAG.apk\` — signed APK for direct installation (Android 8.0+)"
+            echo "- \`TrustCheck-$TAG.aab\` — signed Android App Bundle (for Google Play)"
+            echo "- \`SHA256SUMS.txt\` — verify with \`sha256sum -c SHA256SUMS.txt\`"
+            echo
+            echo "### SHA-256"
+            echo '```'
+            cat release-assets/SHA256SUMS.txt
+            echo '```'
+            echo
+            echo "Built by GitHub Actions from commit \`$(git rev-parse HEAD)\`. Source code: GPL-3.0-only."
+          } > release-notes.md
+          cat release-notes.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Create and publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.v.outputs.tag }}
+          PRE: ${{ steps.v.outputs.prerelease }}
+        run: |
+          args=(--title "TrustCheck $TAG" --notes-file release-notes.md)
+          if [ "${{ github.event_name }}" = "push" ]; then args+=(--verify-tag); else args+=(--target "$GITHUB_SHA"); fi
+          if [ "$PRE" = "true" ]; then args+=(--prerelease); else args+=(--latest); fi
+          gh release create "$TAG" "${args[@]}" \
+            "release-assets/TrustCheck-$TAG.apk" \
+            "release-assets/TrustCheck-$TAG.aab" \
+            "release-assets/TrustCheck-$TAG.apk.sha256" \
+            "release-assets/TrustCheck-$TAG.aab.sha256" \
+            "release-assets/SHA256SUMS.txt"
+          # Confirm it is published (not a draft) and that the binaries are attached.
+          gh release view "$TAG" --json isDraft,assets --jq '{draft: .isDraft, assets: [.assets[].name]}'
+          test "$(gh release view "$TAG" --json isDraft --jq .isDraft)" = "false"
+          gh release view "$TAG" --json assets --jq '.assets[].name' | grep -q "TrustCheck-$TAG.apk"
+          gh release view "$TAG" --json assets --jq '.assets[].name' | grep -q "TrustCheck-$TAG.aab"
+          echo "### ✅ Published https://github.com/${GITHUB_REPOSITORY}/releases/tag/$TAG" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Remove keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/trustcheck-release.jks"
