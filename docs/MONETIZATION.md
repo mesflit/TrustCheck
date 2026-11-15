@@ -2,10 +2,12 @@
 
 ## Google AdMob
 
+**Model**: every feature is free for everyone. The only difference between free and Premium is
+that Premium shows no ads (`PremiumPolicy`).
+
 **What is integrated**: Google Mobile Ads SDK, UMP consent (`AdsManager.gatherConsent` runs after
 onboarding), adaptive banners (`BannerAdSlot`) at the bottom of the Dashboard and History lists
-only, an optional user-initiated rewarded ad (+3 AI explanations per day), and an “Ad privacy
-choices” entry in Settings when UMP requires it.
+only, and an “Ad privacy choices” entry in Settings when UMP requires it.
 
 **Placement rules enforced in code**: no ads in scanner, report, onboarding, premium or alert
 UI; none while scanning; none for Premium users (`PremiumPolicy.showAds`); every banner is
@@ -18,9 +20,9 @@ labelled “Advertisement”.
 | release with `ADMOB_APP_ID` + `ADMOB_BANNER_ID` | production | production | yes (after consent) |
 
 Production setup:
-1. Create the app and ad units (Banner, Rewarded) in AdMob.
+1. Create the app and a Banner ad unit in AdMob.
 2. Publish a GDPR / US-states consent message in **AdMob → Privacy & messaging**.
-3. Add `ADMOB_APP_ID`, `ADMOB_BANNER_ID`, `ADMOB_REWARDED_ID` as GitHub secrets (or
+3. Add `ADMOB_APP_ID` and `ADMOB_BANNER_ID` as GitHub secrets (or
    `trustcheck.admob*` Gradle properties locally). **Never commit production IDs** — CI fails if it finds one.
 4. Add `app-ads.txt` to your developer website.
 5. Never click your own production ads; use test devices.
@@ -53,5 +55,5 @@ cancellations and revocations.
 
 ### What Premium unlocks
 
-No ads, 100 AI explanations per day instead of 5, and up to 365 days of history retention.
-**All essential protection is identical for free users.**
+**Only the removal of ads.** Protection, AI explanations (fair-use limit of 20 per day for
+everyone) and history retention (up to 365 days) are identical for free and Premium users.

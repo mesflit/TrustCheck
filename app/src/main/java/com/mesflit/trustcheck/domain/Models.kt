@@ -70,6 +70,5 @@ data class AppSettings(
     /** User-supplied Google Safe Browsing key (stored only on this device). */
     val safeBrowsingApiKey: String = "",
     val aiQuota: DailyQuota = DailyQuota(0, 0),
-    val aiBonus: DailyQuota = DailyQuota(0, 0),
     val totalScans: Long = 0,
 )

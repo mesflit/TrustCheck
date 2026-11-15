@@ -6,7 +6,7 @@
 #
 # Required secrets: ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS,
 #                   ANDROID_KEY_PASSWORD
-# Optional secrets: ADMOB_APP_ID, ADMOB_BANNER_ID, ADMOB_REWARDED_ID (ads stay disabled without them)
+# Optional secrets: ADMOB_APP_ID, ADMOB_BANNER_ID (ads stay disabled without them)
 # Optional variable: TRUSTCHECK_BACKEND_URL (repository variable; cloud features off without it)
 name: Android Release
 
@@ -137,7 +137,6 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           ADMOB_APP_ID: ${{ secrets.ADMOB_APP_ID }}
           ADMOB_BANNER_ID: ${{ secrets.ADMOB_BANNER_ID }}
-          ADMOB_REWARDED_ID: ${{ secrets.ADMOB_REWARDED_ID }}
           TRUSTCHECK_BACKEND_URL: ${{ vars.TRUSTCHECK_BACKEND_URL }}
           TRUSTCHECK_VERSION_NAME: ${{ steps.v.outputs.version }}
           TRUSTCHECK_VERSION_CODE: ${{ steps.v.outputs.code }}

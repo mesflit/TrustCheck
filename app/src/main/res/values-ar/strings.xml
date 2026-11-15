@@ -148,11 +148,9 @@
     <string name="premium_event_pending">الدفع قيد الانتظار. سيبدأ الاشتراك المميز بعد تأكيده.</string>
     <string name="premium_event_restored">تمت استعادة اشتراكك.</string>
     <string name="premium_expired">اشتراكك غير نشط</string>
-    <string name="premium_feature_ai">مزيد من شروحات الذكاء الاصطناعي كل يوم</string>
     <string name="premium_feature_no_ads">بدون إعلانات</string>
-    <string name="premium_feature_retention">الاحتفاظ بالسجل حتى عام كامل</string>
     <string name="premium_feature_support">ادعم التطوير المستقل مفتوح المصدر</string>
-    <string name="premium_free_note">تبقى جميع وسائل الحماية الأساسية مجانية للجميع.</string>
+    <string name="premium_free_note">جميع الميزات مجانية للجميع. الاشتراك المميز يزيل الإعلانات فقط.</string>
     <string name="premium_grace">الاشتراك المميز نشط — يُرجى تحديث طريقة الدفع في Google Play</string>
     <string name="premium_intro">عرض تمهيدي: %1$s</string>
     <string name="premium_manage">إدارة الاشتراك</string>
@@ -164,7 +162,7 @@
     <string name="premium_plan_other">خطة</string>
     <string name="premium_restore">استعادة المشتريات</string>
     <string name="premium_subscribe">اشترك</string>
-    <string name="premium_subtitle">ادعم TrustCheck وافتح ميزات إضافية.</string>
+    <string name="premium_subtitle">أزل الإعلانات وادعم تطوير TrustCheck.</string>
     <string name="premium_terms">تتجدد الاشتراكات تلقائيًا حتى يتم إلغاؤها. يمكنك الإلغاء في أي وقت من Google Play. يعرض Google Play الأسعار بعملتك.</string>
     <string name="premium_title">TrustCheck Premium</string>
     <string name="premium_unavailable">الاشتراكات غير متاحة حاليًا. تأكد من تثبيت Google Play وتسجيل الدخول.</string>
@@ -191,7 +189,6 @@
     <string name="report_ai_rate_limited">طلبات كثيرة جدًا. يُرجى الانتظار قليلًا.</string>
     <string name="report_ai_remaining">المتبقي اليوم: %1$d</string>
     <string name="report_ai_title">شرح بالذكاء الاصطناعي</string>
-    <string name="report_ai_watch_ad">شاهد إعلانًا للحصول على مزيد من الشروحات</string>
     <string name="report_final_destination">الوجهة النهائية: %1$s</string>
     <string name="report_indicators">المؤشرات المكتشفة</string>
     <string name="report_no_indicators">لم يتم العثور على علامات تحذير.</string>

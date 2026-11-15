@@ -25,7 +25,6 @@ Repository → Settings → Secrets and variables → Actions → **New reposito
 | `ANDROID_KEY_PASSWORD` | key password |
 | `ADMOB_APP_ID` *(optional)* | production AdMob app ID |
 | `ADMOB_BANNER_ID` *(optional)* | production banner unit ID |
-| `ADMOB_REWARDED_ID` *(optional)* | production rewarded unit ID |
 
 Optional **repository variable** (not secret): `TRUSTCHECK_BACKEND_URL` = `https://…/`.
 

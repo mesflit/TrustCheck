@@ -27,7 +27,7 @@ device first, and optionally with cloud threat intelligence.
 | **Security reports** | Risk score 0–100, classification, indicators with explanations, recommended actions, sources checked, timestamp, optional AI explanation |
 | **History** | Room database with search, filters, details, deletion, clear-all and configurable retention |
 | **9 languages** | English, Türkçe, Deutsch, Español, Français, Português (Brasil), العربية (RTL), 日本語, Русский — in-app selector, applied immediately |
-| **Monetization** | AdMob banners (with UMP consent) outside security screens, optional rewarded ad, Google Play Billing subscriptions with server verification |
+| **Monetization** | Every feature is free. AdMob banners (with UMP consent) outside security screens; an optional Premium subscription only removes ads |
 
 ### Classifications
 
@@ -96,22 +96,22 @@ TrustCheck cannot guarantee uninterrupted execution on every device. If alerts a
 
 ## Supported languages
 
-`en` (default and fallback), `tr`, `de`, `es`, `fr`, `pt-BR`, `ar` (RTL), `ja`, `ru`. All 291
+`en` (default and fallback), `tr`, `de`, `es`, `fr`, `pt-BR`, `ar` (RTL), `ja`, `ru`. All 288
 user-facing strings are translated in every locale; a unit test fails the build if a key or a
 placeholder is missing. To add or improve a translation, see [docs/TRANSLATIONS.md](docs/TRANSLATIONS.md).
 
 ## Monetization
 
+- **Everything is free.** Every feature — protection, AI explanations, history — is identical
+  for all users. **Premium only removes ads.**
 - **AdMob**: adaptive banners only at the bottom of the Dashboard and History lists, labelled
   “Advertisement”. No ads in scanner, report or alert screens, never during a scan, never for
-  Premium users. An optional, user-initiated rewarded ad grants extra AI explanations. Consent
-  is gathered with Google UMP. Debug builds use Google’s public test IDs. Release builds show
+  Premium users. Consent is gathered with Google UMP. Debug builds use Google’s public test IDs. Release builds show
   ads only when production IDs are injected by CI.
 - **Google Play Billing**: monthly and annual subscriptions (suggested launch prices USD 3.99 and
   29.99, configured in Play Console, never hard-coded). Restore, grace period, account hold and
   pending purchases are handled. Premium is derived from Play on each launch and verified by the
   backend when it is configured.
-- **Free forever**: all essential protection.
 
 Setup: [docs/MONETIZATION.md](docs/MONETIZATION.md).
 

@@ -149,11 +149,9 @@
     <string name="premium_event_pending">Your payment is pending. Premium starts once it is confirmed.</string>
     <string name="premium_event_restored">Your subscription has been restored.</string>
     <string name="premium_expired">Your subscription is not active</string>
-    <string name="premium_feature_ai">More AI explanations every day</string>
     <string name="premium_feature_no_ads">No advertisements</string>
-    <string name="premium_feature_retention">Keep history for up to one year</string>
     <string name="premium_feature_support">Support independent open-source development</string>
-    <string name="premium_free_note">All essential protection stays free for everyone.</string>
+    <string name="premium_free_note">Every feature is free for everyone. Premium only removes ads.</string>
     <string name="premium_grace">Premium is active — please update your payment method in Google Play</string>
     <string name="premium_intro">Introductory offer: %1$s</string>
     <string name="premium_manage">Manage subscription</string>
@@ -165,7 +163,7 @@
     <string name="premium_plan_other">Plan</string>
     <string name="premium_restore">Restore purchases</string>
     <string name="premium_subscribe">Subscribe</string>
-    <string name="premium_subtitle">Support TrustCheck and unlock extra features.</string>
+    <string name="premium_subtitle">Remove ads and support TrustCheck\'s development.</string>
     <string name="premium_terms">Subscriptions renew automatically until cancelled. Cancel at any time in Google Play. Prices are shown by Google Play in your currency.</string>
     <string name="premium_title">TrustCheck Premium</string>
     <string name="premium_unavailable">Subscriptions are not available right now. Make sure Google Play is installed and you are signed in.</string>
@@ -192,7 +190,6 @@
     <string name="report_ai_rate_limited">Too many requests. Please wait a moment.</string>
     <string name="report_ai_remaining">Remaining today: %1$d</string>
     <string name="report_ai_title">AI explanation</string>
-    <string name="report_ai_watch_ad">Watch an ad for more explanations</string>
     <string name="report_final_destination">Final destination: %1$s</string>
     <string name="report_indicators">Detected indicators</string>
     <string name="report_no_indicators">No warning signs were found.</string>

@@ -53,5 +53,5 @@ the only KSP processor.
 
 - **VPN/DNS protection**: not included. If added later it must be opt-in, explained, never
   silent, and must not inspect HTTPS contents.
-- **Native ads**: not used, to keep ad load low. Banners and an optional rewarded ad are implemented.
+- **Native ads**: not used, to keep ad load low. Only banners are used; Premium removes them and changes nothing else.
 - **Full Public Suffix List**: a compact multi-label suffix list is used (see DETECTION.md).

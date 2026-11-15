@@ -148,11 +148,9 @@
     <string name="premium_event_pending">お支払いは保留中です。確認後にプレミアムが開始されます。</string>
     <string name="premium_event_restored">定期購入が復元されました。</string>
     <string name="premium_expired">定期購入は有効ではありません</string>
-    <string name="premium_feature_ai">毎日より多くの AI 解説</string>
     <string name="premium_feature_no_ads">広告なし</string>
-    <string name="premium_feature_retention">履歴を最大 1 年間保存</string>
     <string name="premium_feature_support">独立したオープンソース開発を支援</string>
-    <string name="premium_free_note">基本的な保護機能はすべて、誰でも無料で使えます。</string>
+    <string name="premium_free_note">すべての機能は誰でも無料で使えます。プレミアムは広告を非表示にするだけです。</string>
     <string name="premium_grace">プレミアムは有効です。Google Play でお支払い方法を更新してください</string>
     <string name="premium_intro">お試し価格: %1$s</string>
     <string name="premium_manage">定期購入を管理</string>
@@ -164,7 +162,7 @@
     <string name="premium_plan_other">プラン</string>
     <string name="premium_restore">購入を復元</string>
     <string name="premium_subscribe">登録する</string>
-    <string name="premium_subtitle">TrustCheck を支援して、追加機能を利用しましょう。</string>
+    <string name="premium_subtitle">広告を非表示にして、TrustCheck の開発を支援しましょう。</string>
     <string name="premium_terms">定期購入は解約するまで自動的に更新されます。Google Play でいつでも解約できます。価格は Google Play がお使いの通貨で表示します。</string>
     <string name="premium_title">TrustCheck プレミアム</string>
     <string name="premium_unavailable">現在、定期購入は利用できません。Google Play がインストールされ、ログインしていることを確認してください。</string>
@@ -191,7 +189,6 @@
     <string name="report_ai_rate_limited">リクエストが多すぎます。しばらくお待ちください。</string>
     <string name="report_ai_remaining">本日の残り: %1$d</string>
     <string name="report_ai_title">AI 解説</string>
-    <string name="report_ai_watch_ad">広告を見て解説を追加</string>
     <string name="report_final_destination">最終的な行き先: %1$s</string>
     <string name="report_indicators">検出された指標</string>
     <string name="report_no_indicators">警告サインは見つかりませんでした。</string>

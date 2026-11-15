@@ -44,7 +44,7 @@ Request: `{ "url"?, "text"?, "language": "tr", "localIndicators": ["LOOKALIKE_BR
 `text` is sent only when the user ticks “also send the message text”.
 Response (structured; written in `language`):
 `{ "verdict", "riskScore"?: 0-100, "summary", "indicators": [{ "code", "explanation" }], "recommendations": [], "language", "model" }`
-Timeout on the client: 30 s. Client limit: 5 requests per minute plus a daily quota (5 free, 100 Premium).
+Timeout on the client: 30 s. Client limit: 5 requests per minute plus a fair-use quota of 20 per day, identical for all users. Enforce the authoritative limit server-side.
 
 ### `GET /v1/blocklist?since=<version>`
 Response: `{ "version", "full": bool, "added": [{ "domain", "category", "source" }], "removed": ["domain"] }`
