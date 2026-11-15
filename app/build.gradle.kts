@@ -22,9 +22,9 @@ val backendBaseUrl = setting("trustcheck.backendBaseUrl", "TRUSTCHECK_BACKEND_UR
 
 val keystoreFile = setting("trustcheck.keystoreFile", "TRUSTCHECK_KEYSTORE_FILE")
 val keystorePassword = setting("trustcheck.keystorePassword", "ANDROID_KEYSTORE_PASSWORD")
-val keyAlias = setting("trustcheck.keyAlias", "ANDROID_KEY_ALIAS")
-val keyPassword = setting("trustcheck.keyPassword", "ANDROID_KEY_PASSWORD")
-val hasSigning = listOf(keystoreFile, keystorePassword, keyAlias, keyPassword).all { it != null } &&
+val signingKeyAlias = setting("trustcheck.keyAlias", "ANDROID_KEY_ALIAS")
+val signingKeyPassword = setting("trustcheck.keyPassword", "ANDROID_KEY_PASSWORD")
+val hasSigning = listOf(keystoreFile, keystorePassword, signingKeyAlias).all { it != null } &&
     file(keystoreFile!!).exists()
 
 android {
@@ -53,8 +53,10 @@ android {
             create("release") {
                 storeFile = file(keystoreFile!!)
                 storePassword = keystorePassword
-                this.keyAlias = keyAlias
-                this.keyPassword = keyPassword
+                // Top-level values have distinct names: inside this block `keyAlias`/`keyPassword`
+                // would resolve to the SigningConfig's own (still empty) properties.
+                keyAlias = signingKeyAlias
+                keyPassword = signingKeyPassword ?: keystorePassword
                 enableV2Signing = true
                 enableV3Signing = true
             }
