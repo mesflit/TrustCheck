@@ -12,7 +12,6 @@ Each value is read from a Gradle property first (e.g. `~/.gradle/gradle.properti
 | `trustcheck.backendBaseUrl` | `TRUSTCHECK_BACKEND_URL` | HTTPS base URL of TrustCheck-Backend; empty = cloud threat intel and AI unavailable |
 | `trustcheck.admobAppId` | `ADMOB_APP_ID` | Production AdMob app ID (release only) |
 | `trustcheck.admobBannerId` | `ADMOB_BANNER_ID` | Production banner unit (release only) |
-| `trustcheck.admobRewardedId` | `ADMOB_REWARDED_ID` | Production rewarded unit (release only) |
 | `trustcheck.versionName` | `TRUSTCHECK_VERSION_NAME` | Version name (CI sets it from the tag) |
 | `trustcheck.versionCode` | `TRUSTCHECK_VERSION_CODE` | Version code (CI derives it from the tag) |
 | `trustcheck.keystoreFile` | `TRUSTCHECK_KEYSTORE_FILE` | Release keystore path |

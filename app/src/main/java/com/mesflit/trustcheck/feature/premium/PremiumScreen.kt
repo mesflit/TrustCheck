@@ -106,7 +106,7 @@ fun PremiumContent(
         ) {
             Text(stringResource(R.string.premium_subtitle), style = MaterialTheme.typography.bodyLarge)
             SectionCard {
-                listOf(R.string.premium_feature_no_ads, R.string.premium_feature_ai, R.string.premium_feature_retention, R.string.premium_feature_support).forEach {
+                listOf(R.string.premium_feature_no_ads, R.string.premium_feature_support).forEach {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(10.dp))

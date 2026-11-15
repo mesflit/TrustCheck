@@ -261,7 +261,7 @@ fun SettingsContent(
         )
         "retention" -> ChoiceDialog(
             title = stringResource(R.string.settings_retention),
-            options = PremiumPolicy.retentionOptions(entitlement),
+            options = PremiumPolicy.RETENTION_OPTIONS_DAYS,
             selected = settings.retentionDays,
             label = { stringResource(R.string.settings_retention_days, it) },
             onSelect = { d -> dialog = null; onUpdate { it.copy(retentionDays = d) } },

@@ -35,7 +35,6 @@ interface SettingsRepository {
     suspend fun setLanguage(language: AppLanguage)
     suspend fun incrementTotalScans(by: Int = 1)
     suspend fun consumeAiQuota(day: Long)
-    suspend fun addAiBonus(day: Long, amount: Int)
     suspend fun backendToken(): String?
     suspend fun setBackendToken(token: String?)
 }

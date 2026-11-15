@@ -148,11 +148,9 @@
     <string name="premium_event_pending">Votre paiement est en attente. Premium démarrera dès sa confirmation.</string>
     <string name="premium_event_restored">Votre abonnement a été restauré.</string>
     <string name="premium_expired">Votre abonnement n\'est pas actif</string>
-    <string name="premium_feature_ai">Plus d\'explications par IA chaque jour</string>
     <string name="premium_feature_no_ads">Aucune publicité</string>
-    <string name="premium_feature_retention">Conservez l\'historique jusqu\'à un an</string>
     <string name="premium_feature_support">Soutenez le développement open source indépendant</string>
-    <string name="premium_free_note">Toute la protection essentielle reste gratuite pour tous.</string>
+    <string name="premium_free_note">Toutes les fonctionnalités sont gratuites pour tous. Premium supprime uniquement les publicités.</string>
     <string name="premium_grace">Premium est actif : veuillez mettre à jour votre moyen de paiement dans Google Play</string>
     <string name="premium_intro">Offre de lancement : %1$s</string>
     <string name="premium_manage">Gérer l\'abonnement</string>
@@ -164,7 +162,7 @@
     <string name="premium_plan_other">Formule</string>
     <string name="premium_restore">Restaurer les achats</string>
     <string name="premium_subscribe">S\'abonner</string>
-    <string name="premium_subtitle">Soutenez TrustCheck et débloquez des fonctionnalités supplémentaires.</string>
+    <string name="premium_subtitle">Supprimez les publicités et soutenez le développement de TrustCheck.</string>
     <string name="premium_terms">Les abonnements se renouvellent automatiquement jusqu\'à leur résiliation. Résiliez à tout moment dans Google Play. Les prix sont affichés par Google Play dans votre devise.</string>
     <string name="premium_title">TrustCheck Premium</string>
     <string name="premium_unavailable">Les abonnements ne sont pas disponibles pour le moment. Vérifiez que Google Play est installé et que vous êtes connecté.</string>
@@ -191,7 +189,6 @@
     <string name="report_ai_rate_limited">Trop de requêtes. Veuillez patienter un instant.</string>
     <string name="report_ai_remaining">Restant aujourd\'hui : %1$d</string>
     <string name="report_ai_title">Explication par IA</string>
-    <string name="report_ai_watch_ad">Regarder une publicité pour plus d\'explications</string>
     <string name="report_final_destination">Destination finale : %1$s</string>
     <string name="report_indicators">Indicateurs détectés</string>
     <string name="report_no_indicators">Aucun signal d\'alerte n\'a été trouvé.</string>

@@ -41,8 +41,6 @@ class SettingsRepositoryImpl(context: Context) : SettingsRepository {
         val sbKey = stringPreferencesKey("safe_browsing_key")
         val aiDay = longPreferencesKey("ai_quota_day")
         val aiUsed = intPreferencesKey("ai_quota_used")
-        val bonusDay = longPreferencesKey("ai_bonus_day")
-        val bonusAmount = intPreferencesKey("ai_bonus_amount")
         val totalScans = longPreferencesKey("total_scans")
         val backendToken = stringPreferencesKey("backend_token")
     }
@@ -52,7 +50,6 @@ class SettingsRepositoryImpl(context: Context) : SettingsRepository {
         .map { p ->
             read(p).copy(
                 aiQuota = DailyQuota(p[K.aiDay] ?: 0, p[K.aiUsed] ?: 0),
-                aiBonus = DailyQuota(p[K.bonusDay] ?: 0, p[K.bonusAmount] ?: 0),
                 totalScans = p[K.totalScans] ?: 0,
             )
         }
@@ -106,14 +103,6 @@ class SettingsRepositoryImpl(context: Context) : SettingsRepository {
             val q = DailyQuota(p[K.aiDay] ?: 0, p[K.aiUsed] ?: 0).consume(day)
             p[K.aiDay] = q.epochDay
             p[K.aiUsed] = q.used
-        }
-    }
-
-    override suspend fun addAiBonus(day: Long, amount: Int) {
-        store.edit { p ->
-            val q = DailyQuota(p[K.bonusDay] ?: 0, p[K.bonusAmount] ?: 0).forDay(day)
-            p[K.bonusDay] = day
-            p[K.bonusAmount] = q.used + amount
         }
     }
 

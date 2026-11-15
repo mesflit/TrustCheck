@@ -60,6 +60,7 @@ class EntitlementResolverTest {
         assertFalse(PremiumPolicy.showAds(premium, adsEnabledInBuild = true))
         assertTrue(PremiumPolicy.showAds(Entitlement.FREE, adsEnabledInBuild = true))
         assertFalse(PremiumPolicy.showAds(Entitlement.FREE, adsEnabledInBuild = false))
-        assertTrue(PremiumPolicy.dailyAiLimit(premium) > PremiumPolicy.dailyAiLimit(Entitlement.FREE))
+        // Premium only removes ads: no feature differs between free and Premium.
+        assertTrue(PremiumPolicy.RETENTION_OPTIONS_DAYS.contains(365))
     }
 }

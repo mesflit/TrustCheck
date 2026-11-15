@@ -15,11 +15,9 @@ fun setting(property: String, env: String): String? =
 // Google's official, public AdMob *test* identifiers. Safe to commit; they never pay out.
 val admobTestAppId = "ca-app-pub-3940256099942544~3347511713"
 val admobTestBannerId = "ca-app-pub-3940256099942544/9214589741"
-val admobTestRewardedId = "ca-app-pub-3940256099942544/5224354917"
 
 val prodAdmobAppId = setting("trustcheck.admobAppId", "ADMOB_APP_ID")
 val prodAdmobBannerId = setting("trustcheck.admobBannerId", "ADMOB_BANNER_ID")
-val prodAdmobRewardedId = setting("trustcheck.admobRewardedId", "ADMOB_REWARDED_ID")
 val backendBaseUrl = setting("trustcheck.backendBaseUrl", "TRUSTCHECK_BACKEND_URL") ?: ""
 
 val keystoreFile = setting("trustcheck.keystoreFile", "TRUSTCHECK_KEYSTORE_FILE")
@@ -71,7 +69,6 @@ android {
             buildConfigField("boolean", "ADS_ENABLED", "true")
             buildConfigField("boolean", "ADS_TEST_MODE", "true")
             buildConfigField("String", "ADMOB_BANNER_ID", "\"$admobTestBannerId\"")
-            buildConfigField("String", "ADMOB_REWARDED_ID", "\"$admobTestRewardedId\"")
         }
         release {
             isMinifyEnabled = true
@@ -87,7 +84,6 @@ android {
             buildConfigField("boolean", "ADS_ENABLED", prodAds.toString())
             buildConfigField("boolean", "ADS_TEST_MODE", "false")
             buildConfigField("String", "ADMOB_BANNER_ID", "\"${prodAdmobBannerId ?: ""}\"")
-            buildConfigField("String", "ADMOB_REWARDED_ID", "\"${prodAdmobRewardedId ?: ""}\"")
         }
     }
 

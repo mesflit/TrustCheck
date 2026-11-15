@@ -148,11 +148,9 @@
     <string name="premium_event_pending">Ödemeniz beklemede. Onaylandığında Premium başlar.</string>
     <string name="premium_event_restored">Aboneliğiniz geri yüklendi.</string>
     <string name="premium_expired">Aboneliğiniz etkin değil</string>
-    <string name="premium_feature_ai">Her gün daha fazla yapay zekâ açıklaması</string>
     <string name="premium_feature_no_ads">Reklam yok</string>
-    <string name="premium_feature_retention">Geçmişi bir yıla kadar sakla</string>
     <string name="premium_feature_support">Bağımsız açık kaynak geliştirmeyi destekleyin</string>
-    <string name="premium_free_note">Tüm temel korumalar herkes için ücretsiz kalır.</string>
+    <string name="premium_free_note">Tüm özellikler herkes için ücretsizdir. Premium yalnızca reklamları kaldırır.</string>
     <string name="premium_grace">Premium etkin — lütfen Google Play\'de ödeme yönteminizi güncelleyin</string>
     <string name="premium_intro">Tanıtım teklifi: %1$s</string>
     <string name="premium_manage">Aboneliği yönet</string>
@@ -164,7 +162,7 @@
     <string name="premium_plan_other">Plan</string>
     <string name="premium_restore">Satın alımları geri yükle</string>
     <string name="premium_subscribe">Abone ol</string>
-    <string name="premium_subtitle">TrustCheck\'i destekleyin ve ek özelliklerin kilidini açın.</string>
+    <string name="premium_subtitle">Reklamları kaldırın ve TrustCheck\'in geliştirilmesine destek olun.</string>
     <string name="premium_terms">Abonelikler iptal edilene kadar otomatik olarak yenilenir. İstediğiniz zaman Google Play\'den iptal edebilirsiniz. Fiyatlar Google Play tarafından para biriminizde gösterilir.</string>
     <string name="premium_title">TrustCheck Premium</string>
     <string name="premium_unavailable">Abonelikler şu anda kullanılamıyor. Google Play\'in yüklü olduğundan ve oturum açtığınızdan emin olun.</string>
@@ -191,7 +189,6 @@
     <string name="report_ai_rate_limited">Çok fazla istek. Lütfen biraz bekleyin.</string>
     <string name="report_ai_remaining">Bugün kalan: %1$d</string>
     <string name="report_ai_title">Yapay zekâ açıklaması</string>
-    <string name="report_ai_watch_ad">Daha fazla açıklama için reklam izle</string>
     <string name="report_final_destination">Son hedef: %1$s</string>
     <string name="report_indicators">Algılanan göstergeler</string>
     <string name="report_no_indicators">Uyarı işareti bulunmadı.</string>

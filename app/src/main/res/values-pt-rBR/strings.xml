@@ -148,11 +148,9 @@
     <string name="premium_event_pending">Seu pagamento está pendente. O Premium começa quando ele for confirmado.</string>
     <string name="premium_event_restored">Sua assinatura foi restaurada.</string>
     <string name="premium_expired">Sua assinatura não está ativa</string>
-    <string name="premium_feature_ai">Mais explicações com IA todos os dias</string>
     <string name="premium_feature_no_ads">Sem anúncios</string>
-    <string name="premium_feature_retention">Mantenha o histórico por até um ano</string>
     <string name="premium_feature_support">Apoie o desenvolvimento independente de código aberto</string>
-    <string name="premium_free_note">Toda a proteção essencial continua gratuita para todos.</string>
+    <string name="premium_free_note">Todos os recursos são gratuitos para todos. O Premium apenas remove os anúncios.</string>
     <string name="premium_grace">O Premium está ativo — atualize sua forma de pagamento no Google Play</string>
     <string name="premium_intro">Oferta introdutória: %1$s</string>
     <string name="premium_manage">Gerenciar assinatura</string>
@@ -164,7 +162,7 @@
     <string name="premium_plan_other">Plano</string>
     <string name="premium_restore">Restaurar compras</string>
     <string name="premium_subscribe">Assinar</string>
-    <string name="premium_subtitle">Apoie o TrustCheck e desbloqueie recursos extras.</string>
+    <string name="premium_subtitle">Remova os anúncios e apoie o desenvolvimento do TrustCheck.</string>
     <string name="premium_terms">As assinaturas são renovadas automaticamente até serem canceladas. Cancele quando quiser no Google Play. Os preços são exibidos pelo Google Play na sua moeda.</string>
     <string name="premium_title">TrustCheck Premium</string>
     <string name="premium_unavailable">As assinaturas não estão disponíveis no momento. Verifique se o Google Play está instalado e se você fez login.</string>
@@ -191,7 +189,6 @@
     <string name="report_ai_rate_limited">Muitas solicitações. Aguarde um momento.</string>
     <string name="report_ai_remaining">Restantes hoje: %1$d</string>
     <string name="report_ai_title">Explicação com IA</string>
-    <string name="report_ai_watch_ad">Assistir a um anúncio para ganhar mais explicações</string>
     <string name="report_final_destination">Destino final: %1$s</string>
     <string name="report_indicators">Indicadores detectados</string>
     <string name="report_no_indicators">Nenhum sinal de alerta foi encontrado.</string>

@@ -1,7 +1,6 @@
 // TrustCheck — Copyright (C) 2026 Mesflit — SPDX-License-Identifier: GPL-3.0-only
 package com.mesflit.trustcheck.feature.report
 
-import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Intent
@@ -66,7 +65,6 @@ import com.mesflit.trustcheck.domain.AiResult
 import com.mesflit.trustcheck.domain.ScanRecord
 import com.mesflit.trustcheck.domain.TargetType
 import com.mesflit.trustcheck.domain.UserAction
-import com.mesflit.trustcheck.monetization.Entitlement
 import com.mesflit.trustcheck.monetization.PremiumPolicy
 import com.mesflit.trustcheck.ui.containerViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -88,17 +86,16 @@ data class ReportState(
     val cloudAiConsent: Boolean = false,
     val messageAvailable: Boolean = false,
     val openableUrl: String? = null,
-    val rewardedReady: Boolean = false,
 )
 
 class ReportViewModel(private val c: AppContainer, private val id: Long) : ViewModel() {
     private val ai = MutableStateFlow(AiUiState.IDLE)
 
     val state: StateFlow<ReportState> = combine(
-        c.scans.observe(id), c.settings.settings, c.billing.entitlement, ai, c.ads.rewardedReady,
-    ) { record, s, e, aiState, rewarded ->
+        c.scans.observe(id), c.settings.settings, ai,
+    ) { record, s, aiState ->
         val day = DailyQuota.epochDay(System.currentTimeMillis())
-        val limit = PremiumPolicy.dailyAiLimit(e) + s.aiBonus.forDay(day).used
+        val limit = PremiumPolicy.DAILY_AI_EXPLANATIONS
         val session = c.session.get(id)
         ReportState(
             loaded = true,
@@ -109,19 +106,16 @@ class ReportViewModel(private val c: AppContainer, private val id: Long) : ViewM
             cloudAiConsent = s.cloudAi,
             messageAvailable = session?.messageText != null,
             openableUrl = record?.takeIf { it.targetType == TargetType.URL }?.let { session?.originalInput?.takeIf { u -> u.startsWith("http", true) } ?: it.normalizedUrl },
-            rewardedReady = rewarded && !e.isPremium,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ReportState())
 
-    init { c.ads.loadRewarded() }
-
-    fun explain(includeMessage: Boolean, entitlement: Entitlement = c.billing.entitlement.value) {
+    fun explain(includeMessage: Boolean) {
         val record = state.value.record ?: return
         if (ai.value == AiUiState.LOADING) return
         viewModelScope.launch {
             val s = c.settings.current()
             val day = DailyQuota.epochDay(System.currentTimeMillis())
-            val limit = PremiumPolicy.dailyAiLimit(entitlement) + s.aiBonus.forDay(day).used
+            val limit = PremiumPolicy.DAILY_AI_EXPLANATIONS
             if (!s.aiQuota.canUse(day, limit)) { ai.value = AiUiState.QUOTA_EXCEEDED; return@launch }
             ai.value = AiUiState.LOADING
             val language = LocaleController.effective(c.appContext, s.language).tag
@@ -153,14 +147,6 @@ class ReportViewModel(private val c: AppContainer, private val id: Long) : ViewM
 
     fun delete(onDone: () -> Unit) = viewModelScope.launch { c.scans.delete(id); onDone() }
 
-    fun watchRewarded(activity: Activity) {
-        c.ads.showRewarded(activity) {
-            viewModelScope.launch {
-                c.settings.addAiBonus(DailyQuota.epochDay(System.currentTimeMillis()), PremiumPolicy.REWARDED_BONUS_AI_EXPLANATIONS)
-                ai.value = AiUiState.IDLE
-            }
-        }
-    }
 }
 
 @Composable
@@ -174,7 +160,6 @@ fun ReportScreen(id: Long, activity: MainActivity, onBack: () -> Unit, onOpenSet
         onExplain = { include -> vm.explain(include) },
         onEnableAi = vm::enableAiConsent,
         onOpenSettings = onOpenSettings,
-        onWatchAd = { vm.watchRewarded(activity) },
         onDelete = { vm.delete(onBack) },
         onOpenAnyway = { url ->
             vm.markOpened()
@@ -193,7 +178,6 @@ fun ReportContent(
     onExplain: (Boolean) -> Unit,
     onEnableAi: () -> Unit,
     onOpenSettings: () -> Unit,
-    onWatchAd: () -> Unit,
     onDelete: () -> Unit,
     onOpenAnyway: (String) -> Unit,
 ) {
@@ -268,7 +252,7 @@ fun ReportContent(
             }
 
             // --- AI explanation ---
-            AiSection(state, onExplain, onEnableAi, onOpenSettings, onWatchAd)
+            AiSection(state, onExplain, onEnableAi, onOpenSettings)
 
             // --- Sources ---
             SectionCard(title = stringResource(R.string.report_sources)) {
@@ -314,7 +298,6 @@ private fun AiSection(
     onExplain: (Boolean) -> Unit,
     onEnableAi: () -> Unit,
     onOpenSettings: () -> Unit,
-    onWatchAd: () -> Unit,
 ) {
     val r = state.record ?: return
     var includeMessage by remember { mutableStateOf(false) }
@@ -367,9 +350,6 @@ private fun AiSection(
                     Text(stringResource(R.string.report_ai_explain))
                 }
                 Text(stringResource(R.string.report_ai_remaining, state.aiRemaining), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (state.aiRemaining == 0 && state.rewardedReady) {
-                    TextButton(onClick = onWatchAd) { Text(stringResource(R.string.report_ai_watch_ad)) }
-                }
             }
         }
     }

@@ -3,13 +3,7 @@ package com.mesflit.trustcheck.monetization
 
 import android.app.Activity
 import android.content.Context
-import com.google.android.gms.ads.AdError
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.FullScreenContentCallback
-import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.MobileAds
-import com.google.android.gms.ads.rewarded.RewardedAd
-import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import com.google.android.ump.ConsentInformation
 import com.google.android.ump.ConsentRequestParameters
 import com.google.android.ump.UserMessagingPlatform
@@ -39,17 +33,12 @@ class AdsManager(context: Context) {
 
     val adsEnabledInBuild: Boolean = BuildConfig.ADS_ENABLED && BuildConfig.ADMOB_BANNER_ID.isNotBlank()
     val bannerUnitId: String = BuildConfig.ADMOB_BANNER_ID
-    private val rewardedUnitId: String = BuildConfig.ADMOB_REWARDED_ID
 
     private val _canRequestAds = MutableStateFlow(false)
     val canRequestAds: StateFlow<Boolean> = _canRequestAds.asStateFlow()
 
     private val _privacyOptionsRequired = MutableStateFlow(false)
     val privacyOptionsRequired: StateFlow<Boolean> = _privacyOptionsRequired.asStateFlow()
-
-    private val _rewardedReady = MutableStateFlow(false)
-    val rewardedReady: StateFlow<Boolean> = _rewardedReady.asStateFlow()
-    private var rewardedAd: RewardedAd? = null
 
     /** Call from the main activity's onCreate. Shows the consent form only if required. */
     fun gatherConsent(activity: Activity, isPremium: Boolean) {
@@ -86,37 +75,5 @@ class AdsManager(context: Context) {
 
     fun showPrivacyOptions(activity: Activity) {
         UserMessagingPlatform.showPrivacyOptionsForm(activity) { _ -> updateState() }
-    }
-
-    /** Optional rewarded ad: user-initiated only, grants extra AI explanations for today. */
-    fun loadRewarded() {
-        if (!adsEnabledInBuild || !_canRequestAds.value || rewardedUnitId.isBlank() || rewardedAd != null) return
-        RewardedAd.load(appContext, rewardedUnitId, AdRequest.Builder().build(), object : RewardedAdLoadCallback() {
-            override fun onAdLoaded(ad: RewardedAd) {
-                rewardedAd = ad
-                _rewardedReady.value = true
-            }
-
-            override fun onAdFailedToLoad(error: LoadAdError) {
-                rewardedAd = null
-                _rewardedReady.value = false
-            }
-        })
-    }
-
-    fun showRewarded(activity: Activity, onReward: () -> Unit) {
-        val ad = rewardedAd ?: return
-        ad.fullScreenContentCallback = object : FullScreenContentCallback() {
-            override fun onAdDismissedFullScreenContent() {
-                rewardedAd = null
-                _rewardedReady.value = false
-            }
-
-            override fun onAdFailedToShowFullScreenContent(error: AdError) {
-                rewardedAd = null
-                _rewardedReady.value = false
-            }
-        }
-        ad.show(activity) { onReward() }
     }
 }

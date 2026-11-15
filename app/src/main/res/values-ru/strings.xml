@@ -148,11 +148,9 @@
     <string name="premium_event_pending">Платёж обрабатывается. Премиум начнёт действовать после подтверждения.</string>
     <string name="premium_event_restored">Подписка восстановлена.</string>
     <string name="premium_expired">Подписка не активна</string>
-    <string name="premium_feature_ai">Больше объяснений ИИ каждый день</string>
     <string name="premium_feature_no_ads">Без рекламы</string>
-    <string name="premium_feature_retention">Хранение истории до одного года</string>
     <string name="premium_feature_support">Поддержка независимой разработки с открытым кодом</string>
-    <string name="premium_free_note">Вся базовая защита остаётся бесплатной для всех.</string>
+    <string name="premium_free_note">Все функции бесплатны для всех. Премиум только отключает рекламу.</string>
     <string name="premium_grace">Премиум активен — обновите способ оплаты в Google Play</string>
     <string name="premium_intro">Вводное предложение: %1$s</string>
     <string name="premium_manage">Управлять подпиской</string>
@@ -164,7 +162,7 @@
     <string name="premium_plan_other">Тариф</string>
     <string name="premium_restore">Восстановить покупки</string>
     <string name="premium_subscribe">Оформить подписку</string>
-    <string name="premium_subtitle">Поддержите TrustCheck и откройте дополнительные функции.</string>
+    <string name="premium_subtitle">Отключите рекламу и поддержите разработку TrustCheck.</string>
     <string name="premium_terms">Подписка продлевается автоматически до отмены. Отменить её можно в любое время в Google Play. Цены отображаются Google Play в вашей валюте.</string>
     <string name="premium_title">TrustCheck Премиум</string>
     <string name="premium_unavailable">Подписки сейчас недоступны. Убедитесь, что Google Play установлен и вы вошли в аккаунт.</string>
@@ -191,7 +189,6 @@
     <string name="report_ai_rate_limited">Слишком много запросов. Подождите немного.</string>
     <string name="report_ai_remaining">Осталось сегодня: %1$d</string>
     <string name="report_ai_title">Объяснение ИИ</string>
-    <string name="report_ai_watch_ad">Посмотреть рекламу, чтобы получить больше объяснений</string>
     <string name="report_final_destination">Конечный адрес: %1$s</string>
     <string name="report_indicators">Обнаруженные признаки</string>
     <string name="report_no_indicators">Признаков опасности не найдено.</string>
