@@ -114,24 +114,26 @@ class BackendClient(
         }
     }
 
-    private suspend fun ensureToken(): String? = tokenMutex.withLock {
-        settings.backendToken()?.let { return it }
-        val b = base ?: return null
-        val installId = UUID.randomUUID().toString()
-        val req = InstallRegistrationRequest(installId, appVersion = BuildConfig.VERSION_NAME, osVersion = Build.VERSION.SDK_INT)
-        val request = Request.Builder()
-            .url(b.newBuilder().addPathSegments("v1/auth/install").build())
-            .post(Http.json.encodeToString(InstallRegistrationRequest.serializer(), req).toRequestBody(Http.JSON_TYPE))
-            .build()
-        return try {
-            http.newCall(request).execute().use { resp ->
-                if (!resp.isSuccessful) return null
-                val token = Http.json.decodeFromString(InstallRegistrationResponse.serializer(), resp.body?.string().orEmpty()).token
-                settings.setBackendToken(token)
-                token
+    private suspend fun ensureToken(): String? {
+        return tokenMutex.withLock {
+            settings.backendToken()?.let { return it }
+            val b = base ?: return null
+            val installId = UUID.randomUUID().toString()
+            val req = InstallRegistrationRequest(installId, appVersion = BuildConfig.VERSION_NAME, osVersion = Build.VERSION.SDK_INT)
+            val request = Request.Builder()
+                .url(b.newBuilder().addPathSegments("v1/auth/install").build())
+                .post(Http.json.encodeToString(InstallRegistrationRequest.serializer(), req).toRequestBody(Http.JSON_TYPE))
+                .build()
+            return try {
+                http.newCall(request).execute().use { resp ->
+                    if (!resp.isSuccessful) return null
+                    val token = Http.json.decodeFromString(InstallRegistrationResponse.serializer(), resp.body?.string().orEmpty()).token
+                    settings.setBackendToken(token)
+                    token
+                }
+            } catch (e: Exception) {
+                null
             }
-        } catch (e: Exception) {
-            null
         }
     }
 }

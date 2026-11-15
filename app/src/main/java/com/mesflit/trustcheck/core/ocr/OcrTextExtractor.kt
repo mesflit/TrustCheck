@@ -22,9 +22,10 @@ class OcrTextExtractor(private val context: Context) {
         data class Failed(val reason: String) : Outcome
     }
 
-    suspend fun extract(uri: Uri): Outcome = recognize(
-        try { InputImage.fromFilePath(context, uri) } catch (e: IOException) { return Outcome.Failed("io") },
-    )
+    suspend fun extract(uri: Uri): Outcome {
+        val image = try { InputImage.fromFilePath(context, uri) } catch (e: IOException) { return Outcome.Failed("io") }
+        return recognize(image)
+    }
 
     /** OCR for rendered PDF pages. */
     suspend fun extract(bitmap: Bitmap): Outcome = recognize(InputImage.fromBitmap(bitmap, 0))
