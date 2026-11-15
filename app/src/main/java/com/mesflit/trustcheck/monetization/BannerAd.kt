@@ -17,9 +17,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.LoadAdError
 import com.mesflit.trustcheck.R
 
 /**
@@ -39,6 +41,11 @@ fun BannerAdSlot(ads: AdsManager, entitlement: Entitlement, modifier: Modifier =
         AdView(context).apply {
             adUnitId = ads.bannerUnitId
             setAdSize(AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(context, widthDp))
+            adListener = object : AdListener() {
+                override fun onAdLoaded() = ads.reportLoad(null)
+                override fun onAdFailedToLoad(error: LoadAdError) = ads.reportLoad(error.code)
+            }
+            ads.reportLoading()
             loadAd(AdRequest.Builder().build())
         }
     }

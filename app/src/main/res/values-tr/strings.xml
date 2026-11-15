@@ -3,6 +3,14 @@
 <resources>
     <string name="action_back">Geri</string>
     <string name="ad_label">Reklam</string>
+    <string name="ad_status_consent_error">onay formu yüklenemedi (kod %1$d)</string>
+    <string name="ad_status_error">hata %1$d</string>
+    <string name="ad_status_loading">hazırlanıyor</string>
+    <string name="ad_status_no_fill">şu an gösterilecek reklam yok. Uygulama bir mağazada yayınlanmadan önce bu normaldir.</string>
+    <string name="ad_status_not_configured">bu sürümde reklam ayarlı değil</string>
+    <string name="ad_status_premium">kapalı (Premium)</string>
+    <string name="ad_status_showing">gösteriliyor</string>
+    <string name="ad_status_waiting">gizlilik onayı bekleniyor</string>
     <string name="alert_action_view">Raporu görüntüle</string>
     <string name="alert_body">Bağlantı: %1$s</string>
     <string name="alert_body_from_app">%2$s bildirimindeki bağlantı: %1$s</string>
@@ -318,6 +326,7 @@
     <string name="settings_access_granted">Bildirim erişimi verildi.</string>
     <string name="settings_access_missing">Bildirim erişimi verilmedi.</string>
     <string name="settings_ad_privacy">Reklam gizliliği seçenekleri</string>
+    <string name="settings_ad_status">Reklam durumu: %1$s</string>
     <string name="settings_alerts">Güvenlik uyarıları</string>
     <string name="settings_alerts_desc">Tehlikeli bir bağlantı bulunduğunda bildirim göster</string>
     <string name="settings_background_desc">Arka plan kontrolleri Android\'in görev zamanlayıcısıyla çalışır. Pil tasarrufu ve bazı üreticilerin ayarları bunları geciktirebilir veya durdurabilir. Uyarılar geç geliyorsa TrustCheck\'in pil kısıtlaması olmadan çalışmasına izin verin.</string>

@@ -3,6 +3,14 @@
 <resources>
     <string name="action_back">Atrás</string>
     <string name="ad_label">Anuncio</string>
+    <string name="ad_status_consent_error">no se pudo cargar el formulario de consentimiento (código %1$d)</string>
+    <string name="ad_status_error">error %1$d</string>
+    <string name="ad_status_loading">preparando</string>
+    <string name="ad_status_no_fill">no hay anuncios disponibles ahora. Es normal antes de publicar la app en una tienda.</string>
+    <string name="ad_status_not_configured">los anuncios no están configurados en esta versión</string>
+    <string name="ad_status_premium">desactivados (Premium)</string>
+    <string name="ad_status_showing">mostrándose</string>
+    <string name="ad_status_waiting">esperando el consentimiento de privacidad</string>
     <string name="alert_action_view">Ver informe</string>
     <string name="alert_body">Enlace: %1$s</string>
     <string name="alert_body_from_app">Enlace %1$s en una notificación de %2$s</string>
@@ -318,6 +326,7 @@
     <string name="settings_access_granted">El acceso a notificaciones está concedido.</string>
     <string name="settings_access_missing">El acceso a notificaciones no está concedido.</string>
     <string name="settings_ad_privacy">Opciones de privacidad de anuncios</string>
+    <string name="settings_ad_status">Estado de anuncios: %1$s</string>
     <string name="settings_alerts">Alertas de seguridad</string>
     <string name="settings_alerts_desc">Mostrar una notificación cuando se encuentre un enlace peligroso</string>
     <string name="settings_background_desc">Las comprobaciones en segundo plano usan el programador de tareas de Android. El ahorro de batería y los ajustes de algunos fabricantes pueden retrasarlas o detenerlas. Si las alertas llegan tarde, permite que TrustCheck funcione sin restricciones de batería.</string>

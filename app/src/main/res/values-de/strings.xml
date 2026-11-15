@@ -3,6 +3,14 @@
 <resources>
     <string name="action_back">Zurück</string>
     <string name="ad_label">Anzeige</string>
+    <string name="ad_status_consent_error">das Einwilligungsformular konnte nicht geladen werden (Code %1$d)</string>
+    <string name="ad_status_error">Fehler %1$d</string>
+    <string name="ad_status_loading">wird vorbereitet</string>
+    <string name="ad_status_no_fill">gerade ist keine Anzeige verfügbar. Das ist normal, solange die App in keinem Store veröffentlicht ist.</string>
+    <string name="ad_status_not_configured">in diesem Build ist keine Werbung eingerichtet</string>
+    <string name="ad_status_premium">aus (Premium)</string>
+    <string name="ad_status_showing">wird angezeigt</string>
+    <string name="ad_status_waiting">wartet auf Datenschutz-Einwilligung</string>
     <string name="alert_action_view">Bericht ansehen</string>
     <string name="alert_body">Link: %1$s</string>
     <string name="alert_body_from_app">Link %1$s in einer Benachrichtigung von %2$s</string>
@@ -318,6 +326,7 @@
     <string name="settings_access_granted">Benachrichtigungszugriff ist erteilt.</string>
     <string name="settings_access_missing">Benachrichtigungszugriff ist nicht erteilt.</string>
     <string name="settings_ad_privacy">Datenschutzoptionen für Werbung</string>
+    <string name="settings_ad_status">Werbestatus: %1$s</string>
     <string name="settings_alerts">Sicherheitswarnungen</string>
     <string name="settings_alerts_desc">Benachrichtigung anzeigen, wenn ein gefährlicher Link gefunden wird</string>
     <string name="settings_background_desc">Hintergrundprüfungen laufen über den Android-Jobplaner. Energiesparen und Einstellungen mancher Hersteller können sie verzögern oder stoppen. Wenn Warnungen spät kommen, erlauben Sie TrustCheck die Ausführung ohne Akku-Beschränkungen.</string>

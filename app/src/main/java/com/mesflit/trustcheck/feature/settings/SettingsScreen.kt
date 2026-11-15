@@ -1,6 +1,7 @@
 // TrustCheck — Copyright (C) 2026 Mesflit — SPDX-License-Identifier: GPL-3.0-only
 package com.mesflit.trustcheck.feature.settings
 
+import com.mesflit.trustcheck.monetization.AdStatus
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -109,6 +110,7 @@ fun SettingsScreen(activity: MainActivity, onOpenPremium: () -> Unit) {
     val container = LocalAppContainer.current
     val entitlement by container.billing.entitlement.collectAsStateWithLifecycle()
     val privacyOptions by container.ads.privacyOptionsRequired.collectAsStateWithLifecycle()
+    val adStatus by container.ads.status.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var access by remember { mutableStateOf(hasNotificationAccess(context)) }
     var postGranted by remember { mutableStateOf(postNotificationsGranted(context)) }
@@ -131,6 +133,7 @@ fun SettingsScreen(activity: MainActivity, onOpenPremium: () -> Unit) {
         feedUpdating = feedUpdating,
         onUpdateFeed = vm::updateFeedNow,
         showAdPrivacy = privacyOptions,
+        adStatus = adStatus,
         onUpdate = { vm.update(it) },
         onLanguage = vm::setLanguage,
         onOpenAccessSettings = { context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) },
@@ -162,6 +165,7 @@ fun SettingsContent(
     feedUpdating: Boolean,
     onUpdateFeed: () -> Unit,
     showAdPrivacy: Boolean,
+    adStatus: AdStatus? = null,
     onUpdate: ((AppSettings) -> AppSettings) -> Unit,
     onLanguage: (AppLanguage) -> Unit,
     onOpenAccessSettings: () -> Unit,
@@ -234,6 +238,19 @@ fun SettingsContent(
             SwitchRow(stringResource(R.string.settings_keep_clean), stringResource(R.string.settings_keep_clean_desc), settings.keepCleanNotificationScans) { v -> onUpdate { it.copy(keepCleanNotificationScans = v) } }
             SwitchRow(stringResource(R.string.settings_diagnostics), stringResource(R.string.settings_diagnostics_desc), settings.diagnostics) { v -> onUpdate { it.copy(diagnostics = v) } }
             if (showAdPrivacy) TextButton(onClick = onAdPrivacy) { Text(stringResource(R.string.settings_ad_privacy)) }
+            adStatus?.let { st ->
+                val label = when (st.kind) {
+                    AdStatus.Kind.NOT_CONFIGURED -> stringResource(R.string.ad_status_not_configured)
+                    AdStatus.Kind.PREMIUM -> stringResource(R.string.ad_status_premium)
+                    AdStatus.Kind.WAITING_FOR_CONSENT -> stringResource(R.string.ad_status_waiting)
+                    AdStatus.Kind.CONSENT_ERROR -> stringResource(R.string.ad_status_consent_error, st.code ?: 0)
+                    AdStatus.Kind.LOADING -> stringResource(R.string.ad_status_loading)
+                    AdStatus.Kind.SHOWING -> stringResource(R.string.ad_status_showing)
+                    AdStatus.Kind.NO_FILL -> stringResource(R.string.ad_status_no_fill)
+                    AdStatus.Kind.ERROR -> stringResource(R.string.ad_status_error, st.code ?: 0)
+                }
+                Text(stringResource(R.string.settings_ad_status, label), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             TextButton(onClick = { onOpenUrl(PRIVACY_URL) }) { Text(stringResource(R.string.settings_privacy_policy)) }
         }
 

@@ -25,6 +25,11 @@ import java.util.concurrent.atomic.AtomicBoolean
  *  - No ads for Premium users, no ads in scanner/report/alert screens, never during a scan.
  *  - Debug builds use Google's public test ad units; production IDs are injected at build time.
  */
+/** What happened to ads on this device, shown in Settings so missing ads can be diagnosed. */
+data class AdStatus(val kind: Kind, val code: Int? = null) {
+    enum class Kind { NOT_CONFIGURED, PREMIUM, WAITING_FOR_CONSENT, CONSENT_ERROR, LOADING, SHOWING, NO_FILL, ERROR }
+}
+
 class AdsManager(context: Context) {
     private val appContext = context.applicationContext
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -37,12 +42,27 @@ class AdsManager(context: Context) {
     private val _canRequestAds = MutableStateFlow(false)
     val canRequestAds: StateFlow<Boolean> = _canRequestAds.asStateFlow()
 
+    private val _status = MutableStateFlow(AdStatus(if (adsEnabledInBuild) AdStatus.Kind.WAITING_FOR_CONSENT else AdStatus.Kind.NOT_CONFIGURED))
+    val status: StateFlow<AdStatus> = _status.asStateFlow()
+
+    /** Called by the banner after each load attempt (AdMob error codes: 3 = no ad available). */
+    fun reportLoad(errorCode: Int?) {
+        _status.value = when (errorCode) {
+            null -> AdStatus(AdStatus.Kind.SHOWING)
+            3 -> AdStatus(AdStatus.Kind.NO_FILL, 3)
+            else -> AdStatus(AdStatus.Kind.ERROR, errorCode)
+        }
+    }
+
+    fun reportLoading() { if (_status.value.kind != AdStatus.Kind.SHOWING) _status.value = AdStatus(AdStatus.Kind.LOADING) }
+
     private val _privacyOptionsRequired = MutableStateFlow(false)
     val privacyOptionsRequired: StateFlow<Boolean> = _privacyOptionsRequired.asStateFlow()
 
     /** Call from the main activity's onCreate. Shows the consent form only if required. */
     fun gatherConsent(activity: Activity, isPremium: Boolean) {
-        if (!adsEnabledInBuild || isPremium) return
+        if (!adsEnabledInBuild) return
+        if (isPremium) { _status.value = AdStatus(AdStatus.Kind.PREMIUM); return }
         val params = ConsentRequestParameters.Builder().setTagForUnderAgeOfConsent(false).build()
         consent.requestConsentInfoUpdate(
             activity,
@@ -53,7 +73,7 @@ class AdsManager(context: Context) {
                     if (consent.canRequestAds()) startSdk()
                 }
             },
-            { _ -> updateState() },
+            { error -> updateState(); if (!consent.canRequestAds()) _status.value = AdStatus(AdStatus.Kind.CONSENT_ERROR, error.errorCode) },
         )
         // Consent from a previous session can be used immediately.
         updateState()
@@ -62,6 +82,7 @@ class AdsManager(context: Context) {
 
     private fun updateState() {
         _canRequestAds.value = consent.canRequestAds()
+        if (consent.canRequestAds() && _status.value.kind == AdStatus.Kind.WAITING_FOR_CONSENT) _status.value = AdStatus(AdStatus.Kind.LOADING)
         _privacyOptionsRequired.value =
             consent.privacyOptionsRequirementStatus == ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED
     }

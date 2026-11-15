@@ -3,6 +3,14 @@
 <resources>
     <string name="action_back">Retour</string>
     <string name="ad_label">Publicité</string>
+    <string name="ad_status_consent_error">le formulaire de consentement n\'a pas pu être chargé (code %1$d)</string>
+    <string name="ad_status_error">erreur %1$d</string>
+    <string name="ad_status_loading">préparation</string>
+    <string name="ad_status_no_fill">aucune publicité disponible pour le moment. C\'est normal tant que l\'app n\'est pas publiée dans un store.</string>
+    <string name="ad_status_not_configured">les publicités ne sont pas configurées dans cette version</string>
+    <string name="ad_status_premium">désactivées (Premium)</string>
+    <string name="ad_status_showing">affichées</string>
+    <string name="ad_status_waiting">en attente du consentement</string>
     <string name="alert_action_view">Voir le rapport</string>
     <string name="alert_body">Lien : %1$s</string>
     <string name="alert_body_from_app">Lien %1$s dans une notification de %2$s</string>
@@ -318,6 +326,7 @@
     <string name="settings_access_granted">L\'accès aux notifications est accordé.</string>
     <string name="settings_access_missing">L\'accès aux notifications n\'est pas accordé.</string>
     <string name="settings_ad_privacy">Choix de confidentialité publicitaire</string>
+    <string name="settings_ad_status">État des publicités : %1$s</string>
     <string name="settings_alerts">Alertes de sécurité</string>
     <string name="settings_alerts_desc">Afficher une notification lorsqu\'un lien dangereux est trouvé</string>
     <string name="settings_background_desc">Les vérifications en arrière-plan passent par le planificateur de tâches d\'Android. L\'économiseur de batterie et les réglages de certains fabricants peuvent les retarder ou les arrêter. Si les alertes arrivent en retard, autorisez TrustCheck à fonctionner sans restriction de batterie.</string>

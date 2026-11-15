@@ -4,6 +4,14 @@
     <string name="app_name" translatable="false">TrustCheck</string>
     <string name="action_back">Back</string>
     <string name="ad_label">Advertisement</string>
+    <string name="ad_status_consent_error">the consent form could not be loaded (code %1$d)</string>
+    <string name="ad_status_error">error %1$d</string>
+    <string name="ad_status_loading">preparing</string>
+    <string name="ad_status_no_fill">no ad available right now. This is normal before the app is listed in a store.</string>
+    <string name="ad_status_not_configured">ads are not set up in this build</string>
+    <string name="ad_status_premium">off (Premium)</string>
+    <string name="ad_status_showing">showing</string>
+    <string name="ad_status_waiting">waiting for privacy consent</string>
     <string name="alert_action_view">View report</string>
     <string name="alert_body">Link: %1$s</string>
     <string name="alert_body_from_app">Link %1$s in a notification from %2$s</string>
@@ -319,6 +327,7 @@
     <string name="settings_access_granted">Notification access is granted.</string>
     <string name="settings_access_missing">Notification access is not granted.</string>
     <string name="settings_ad_privacy">Ad privacy choices</string>
+    <string name="settings_ad_status">Ad status: %1$s</string>
     <string name="settings_alerts">Security alerts</string>
     <string name="settings_alerts_desc">Show a notification when a dangerous link is found</string>
     <string name="settings_background_desc">Background checks run through Android\'s job scheduler. Battery saving and some manufacturers\' settings can delay or stop them. If alerts arrive late, allow TrustCheck to run without battery restrictions.</string>

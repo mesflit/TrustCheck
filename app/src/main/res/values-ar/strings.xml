@@ -3,6 +3,14 @@
 <resources>
     <string name="action_back">رجوع</string>
     <string name="ad_label">إعلان</string>
+    <string name="ad_status_consent_error">تعذّر تحميل نموذج الموافقة (الرمز %1$d)</string>
+    <string name="ad_status_error">خطأ %1$d</string>
+    <string name="ad_status_loading">قيد التحضير</string>
+    <string name="ad_status_no_fill">لا يتوفر إعلان الآن. هذا طبيعي قبل نشر التطبيق في متجر.</string>
+    <string name="ad_status_not_configured">الإعلانات غير مُعدّة في هذا الإصدار</string>
+    <string name="ad_status_premium">متوقفة (Premium)</string>
+    <string name="ad_status_showing">معروضة</string>
+    <string name="ad_status_waiting">بانتظار الموافقة على الخصوصية</string>
     <string name="alert_action_view">عرض التقرير</string>
     <string name="alert_body">الرابط: %1$s</string>
     <string name="alert_body_from_app">الرابط %1$s في إشعار من %2$s</string>
@@ -318,6 +326,7 @@
     <string name="settings_access_granted">تم منح الوصول إلى الإشعارات.</string>
     <string name="settings_access_missing">لم يتم منح الوصول إلى الإشعارات.</string>
     <string name="settings_ad_privacy">خيارات خصوصية الإعلانات</string>
+    <string name="settings_ad_status">حالة الإعلانات: %1$s</string>
     <string name="settings_alerts">تنبيهات الأمان</string>
     <string name="settings_alerts_desc">عرض إشعار عند العثور على رابط خطير</string>
     <string name="settings_background_desc">تعمل الفحوصات في الخلفية عبر مجدول المهام في Android. قد يؤدي توفير البطارية وإعدادات بعض الشركات المصنّعة إلى تأخيرها أو إيقافها. إذا وصلت التنبيهات متأخرة، فاسمح لـ TrustCheck بالعمل دون قيود على البطارية.</string>
