@@ -1,0 +1,148 @@
+# TrustCheck — continuous integration. Builds and tests every push/PR to main.
+# Produces a debug APK as a workflow artifact. Nothing is ever committed back to the repo.
+name: Android CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      run_instrumented:
+        description: "Also run Compose UI tests on an emulator (slow)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GRADLE_VERSION: "8.14.3"
+  ANDROID_PLATFORM: "platforms;android-36"
+  ANDROID_BUILD_TOOLS: "build-tools;36.0.0"
+
+jobs:
+  build:
+    name: Build & unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Verify source-only repository policy
+        run: bash scripts/verify-source-only.sh
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        run: |
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses > /dev/null
+          "$SDKMANAGER" --install "$ANDROID_PLATFORM" "$ANDROID_BUILD_TOOLS" "platform-tools" > /dev/null
+          echo "Android SDK ready at $ANDROID_HOME"
+
+      - name: Set up Gradle (with dependency caching)
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: ${{ env.GRADLE_VERSION }}
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Validate Gradle configuration
+        run: |
+          gradle --no-daemon --stacktrace help
+          gradle --no-daemon :app:dependencies --configuration releaseRuntimeClasspath > /dev/null
+
+      - name: Run unit tests
+        run: gradle --no-daemon --stacktrace :app:testDebugUnitTest
+
+      - name: Build debug APK
+        run: gradle --no-daemon --stacktrace :app:assembleDebug
+
+      - name: Build release variant (unsigned, ads disabled)
+        run: gradle --no-daemon --stacktrace :app:assembleRelease
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: trustcheck-debug-${{ github.sha }}
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-${{ github.sha }}
+          path: |
+            app/build/reports/tests/
+            app/build/test-results/
+            app/build/reports/lint-results-*.html
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Summarize failure
+        if: failure()
+        run: |
+          {
+            echo "## ❌ TrustCheck CI failed"
+            echo "Check the failing step above. Test reports (if any) are attached as the"
+            echo "\`test-reports-${GITHUB_SHA}\` artifact."
+            for f in app/build/test-results/testDebugUnitTest/*.xml; do
+              [ -f "$f" ] || continue
+              grep -o '<testcase [^>]*name="[^"]*"[^>]*>\s*<failure' "$f" | sed -E 's/.*name="([^"]*)".*/- failed: \1/' || true
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Summarize success
+        if: success()
+        run: |
+          echo "## ✅ TrustCheck CI passed" >> "$GITHUB_STEP_SUMMARY"
+          ls -l app/build/outputs/apk/debug/ >> "$GITHUB_STEP_SUMMARY"
+
+  instrumented:
+    name: Compose UI tests (emulator)
+    if: github.event_name == 'workflow_dispatch' && inputs.run_instrumented
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: ${{ env.GRADLE_VERSION }}
+          cache-read-only: true
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+      # Third-party but widely used emulator runner; only used in this optional, manual job.
+      - name: Run connected tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          script: gradle --no-daemon :app:connectedDebugAndroidTest
+      - name: Upload instrumented reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-test-reports-${{ github.sha }}
+          path: app/build/reports/androidTests/
+          if-no-files-found: ignore
