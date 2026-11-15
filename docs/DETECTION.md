@@ -30,6 +30,33 @@ Unparseable input → `ANALYSIS_FAILED`.
 | Lure words, many hyphens | 8 | |
 | Punycode, private network, long URL | 5 | Informational |
 
+## Phone numbers, IBANs and crypto addresses (`PaymentDetailsAnalyzer`)
+
+Runs on message text (links are removed first). The home country comes from the SIM, then the
+network, then the device locale; checks that need it are skipped when it is unknown.
+
+| Indicator | Weight | Notes |
+|---|---|---|
+| Premium-rate number | 25 | Per-country prefixes (e.g. TR 900, DE 0900/0137/0138, UK 09, FR 089, US 900/976) |
+| International network number | 25 | +870 / +881 / +882 / +883 / +979 (satellite and global services) |
+| Crypto wallet address | 20 | ETH `0x…`, bech32 `bc1…`, base58check-validated BTC/TRON |
+| Foreign IBAN / invalid IBAN | 15 | Country-specific length and ISO 13616 mod-97 checksum |
+| Foreign phone number | 10 | Only for `+`/`00` numbers whose calling code differs from the home country |
+
+Values are masked in reports and never stored.
+
+## QR codes
+
+QR, Aztec, Data Matrix and PDF417 codes are decoded on the device (ML Kit) from shared images,
+image files and rendered PDF pages, and from the camera through Google Play services' code scanner
+(TrustCheck holds no camera permission). The decoded content is analyzed like pasted text.
+
+## Wrong-result reports
+
+The report screen can open a public GitHub issue form (`.github/ISSUE_TEMPLATE/detection_report.yml`)
+prefilled by `DetectionReport` with a defanged, query-free link or a SHA-256, the verdict, indicator
+codes, sources and version. Nothing is submitted without the user.
+
 ## Files
 
 Files have no reputation source, so their verdict is **Suspicious** (score ≥ 40) or **Unknown**

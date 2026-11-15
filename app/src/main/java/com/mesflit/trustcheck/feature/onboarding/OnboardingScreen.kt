@@ -23,6 +23,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Assessment
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Link
@@ -153,9 +156,12 @@ private val FEATURES: List<Triple<ImageVector, Int, Int>> = listOf(
     Triple(Icons.Filled.Share, R.string.feat_share_title, R.string.feat_share_desc),
     Triple(Icons.Filled.Image, R.string.feat_screenshots_title, R.string.feat_screenshots_desc),
     Triple(Icons.Filled.UploadFile, R.string.feat_files_title, R.string.feat_files_desc),
+    Triple(Icons.Filled.QrCodeScanner, R.string.feat_qr_title, R.string.feat_qr_desc),
+    Triple(Icons.Filled.Payments, R.string.feat_payment_title, R.string.feat_payment_desc),
     Triple(Icons.Filled.Security, R.string.feat_feed_title, R.string.feat_feed_desc),
     Triple(Icons.Filled.Assessment, R.string.feat_reports_title, R.string.feat_reports_desc),
     Triple(Icons.Filled.History, R.string.feat_history_title, R.string.feat_history_desc),
+    Triple(Icons.Filled.Flag, R.string.feat_report_wrong_title, R.string.feat_report_wrong_desc),
     Triple(Icons.Filled.WifiOff, R.string.feat_offline_title, R.string.feat_offline_desc),
     Triple(Icons.Filled.Translate, R.string.feat_languages_title, R.string.feat_languages_desc),
     Triple(Icons.Filled.VolunteerActivism, R.string.feat_free_title, R.string.feat_free_desc),

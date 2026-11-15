@@ -62,6 +62,14 @@ enum class Indicator(val weight: Int) {
     PRIZE_OR_MONEY_LURE(15),
     PAYMENT_OR_FEE_REQUEST(15),
 
+    // Payment details found in messages
+    PREMIUM_RATE_NUMBER(25),
+    INTERNATIONAL_NETWORK_NUMBER(25),
+    FOREIGN_PHONE_NUMBER(10),
+    FOREIGN_IBAN(15),
+    INVALID_IBAN(15),
+    CRYPTO_ADDRESS(20),
+
     // Files
     DOUBLE_EXTENSION(40),
     EXTENSION_MISMATCH(30),

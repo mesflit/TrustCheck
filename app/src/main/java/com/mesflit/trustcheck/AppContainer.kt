@@ -4,6 +4,8 @@ package com.mesflit.trustcheck
 import android.content.Context
 import android.net.Uri
 import com.mesflit.trustcheck.core.database.TrustCheckDatabase
+import com.mesflit.trustcheck.core.localization.HomeCountry
+import com.mesflit.trustcheck.core.qr.QrDecoder
 import com.mesflit.trustcheck.core.files.FileScanService
 import com.mesflit.trustcheck.core.files.FileScanner
 import com.mesflit.trustcheck.core.network.BackendClient
@@ -66,12 +68,15 @@ class AppContainer(context: Context) {
             redirectResolver = OkHttpRedirectResolver(),
         )
     }
-    val scanCoordinator by lazy { ScanCoordinator(engine, scans, settings, connectivity::isOnline) }
+    /** ISO country of the SIM/network/region; used on-device only (foreign numbers, IBANs). */
+    val homeCountry: String? by lazy { HomeCountry.detect(appContext) }
+    val scanCoordinator by lazy { ScanCoordinator(engine, scans, settings, connectivity::isOnline, { homeCountry }) }
     val notifier = AlertNotifier(appContext)
     val scheduler by lazy { WorkScheduler(appContext) }
     val notificationProcessor by lazy { NotificationScanProcessor(engine, scans, settings, notifier, scheduler) }
     val ocr by lazy { OcrTextExtractor(appContext) }
-    val fileScan by lazy { FileScanService(FileScanner(appContext, ocr), engine, scanCoordinator, scans, settings) }
+    val qr by lazy { QrDecoder(appContext) }
+    val fileScan by lazy { FileScanService(FileScanner(appContext, ocr, qr), engine, scanCoordinator, scans, settings, { homeCountry }) }
     val billing by lazy { BillingManager(appContext, backend) }
     val ads by lazy { AdsManager(appContext) }
 

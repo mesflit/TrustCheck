@@ -48,6 +48,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.mesflit.trustcheck.AppContainer
+import com.mesflit.trustcheck.BuildConfig
 import com.mesflit.trustcheck.MainActivity
 import com.mesflit.trustcheck.R
 import com.mesflit.trustcheck.core.design.LocalRiskColors
@@ -56,6 +57,7 @@ import com.mesflit.trustcheck.core.design.RiskGauge
 import com.mesflit.trustcheck.core.design.SectionCard
 import com.mesflit.trustcheck.core.design.rememberDateTimeFormatter
 import com.mesflit.trustcheck.core.localization.SecurityStrings
+import com.mesflit.trustcheck.core.security.DetectionReport
 import com.mesflit.trustcheck.core.security.FileFacts
 import com.mesflit.trustcheck.core.security.RiskClassification
 import com.mesflit.trustcheck.core.security.Severity
@@ -109,8 +111,23 @@ fun ReportScreen(id: Long, onBack: () -> Unit) {
         onOpenAnyway = { url -> vm.markOpened(); openExternal(url, R.string.report_open_anyway) },
         // Only the SHA-256 hash leaves the device, and only when the user taps the button.
         onLookupHash = { sha -> openExternal("https://www.virustotal.com/gui/file/$sha", R.string.file_lookup_hash) },
+        onReportWrong = { record, kind -> openExternal(DetectionReport.issueUrl(reportInput(record, kind)), R.string.report_wrong_title) },
     )
 }
+
+/** What a "wrong result" report contains: no message text, file names or indicator details. */
+private fun reportInput(r: ScanRecord, kind: DetectionReport.Kind) = DetectionReport.Input(
+    kind = kind,
+    targetType = r.targetType.name,
+    url = r.normalizedUrl?.takeIf { r.file == null },
+    fileSha256 = r.file?.sha256,
+    fileType = r.file?.kind?.label,
+    classification = r.classification,
+    score = r.riskScore,
+    indicators = r.indicators.map { it.indicator },
+    sources = r.sources,
+    appVersion = BuildConfig.VERSION_NAME,
+)
 
 @Composable
 fun ReportContent(
@@ -119,8 +136,10 @@ fun ReportContent(
     onDelete: () -> Unit,
     onOpenAnyway: (String) -> Unit,
     onLookupHash: (String) -> Unit = {},
+    onReportWrong: (ScanRecord, DetectionReport.Kind) -> Unit = { _, _ -> },
 ) {
     var confirmOpen by remember { mutableStateOf(false) }
+    var confirmReport by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -217,6 +236,24 @@ fun ReportContent(
                 }
                 if (url == r.normalizedUrl) Text(stringResource(R.string.report_query_removed_note), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+            TextButton(onClick = { confirmReport = true }, modifier = Modifier.fillMaxWidth().testTag("report_wrong")) {
+                Text(stringResource(R.string.report_wrong_button))
+            }
+        }
+
+        if (confirmReport) {
+            AlertDialog(
+                onDismissRequest = { confirmReport = false },
+                title = { Text(stringResource(R.string.report_wrong_title)) },
+                text = { Text(stringResource(R.string.report_wrong_body)) },
+                confirmButton = {
+                    Column(horizontalAlignment = Alignment.End) {
+                        TextButton(onClick = { confirmReport = false; onReportWrong(r, DetectionReport.Kind.FALSE_ALARM) }) { Text(stringResource(R.string.report_wrong_false_alarm)) }
+                        TextButton(onClick = { confirmReport = false; onReportWrong(r, DetectionReport.Kind.MISSED_THREAT) }) { Text(stringResource(R.string.report_wrong_missed)) }
+                    }
+                },
+                dismissButton = { TextButton(onClick = { confirmReport = false }) { Text(stringResource(R.string.common_cancel)) } },
+            )
         }
 
         if (confirmOpen && state.openableUrl != null) {

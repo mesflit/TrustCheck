@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.OpenableColumns
 import com.mesflit.trustcheck.core.ocr.OcrTextExtractor
+import com.mesflit.trustcheck.core.qr.QrDecoder
 import com.mesflit.trustcheck.core.security.ApkFacts
 import com.mesflit.trustcheck.core.security.FileFacts
 import com.mesflit.trustcheck.core.security.FileInspector
@@ -30,7 +31,7 @@ import java.util.zip.ZipInputStream
  * and (for documents, PDFs and images) text to look for links. Nothing is uploaded, the file is
  * never opened or executed, and extracted text lives only in memory.
  */
-class FileScanner(private val context: Context, private val ocr: OcrTextExtractor) {
+class FileScanner(private val context: Context, private val ocr: OcrTextExtractor, private val qr: QrDecoder) {
 
     sealed interface Outcome {
         /** [text] is in-memory only; callers must not persist it. */
@@ -110,7 +111,9 @@ class FileScanner(private val context: Context, private val ocr: OcrTextExtracto
             FileKind.TEXT, FileKind.HTML -> if (size <= MAX_TEXT_BYTES) open(uri).use { readLimited(it, MAX_TEXT_CHARS) } else null
             FileKind.OOXML -> officeText.toString().replace(Regex("<[^>]+>"), " ")
             FileKind.PDF -> pdfText(uri)
-            FileKind.IMAGE -> (ocr.extract(uri) as? OcrTextExtractor.Outcome.Text)?.value
+            // Images: printed text (OCR) plus the content of any QR code in the picture.
+            FileKind.IMAGE -> listOfNotNull((ocr.extract(uri) as? OcrTextExtractor.Outcome.Text)?.value, qr.decode(uri).joinToString("\n").ifBlank { null })
+                .joinToString("\n").ifBlank { null }
             else -> null
         }
         return Outcome.Success(facts, text?.takeIf { it.isNotBlank() })
@@ -144,6 +147,7 @@ class FileScanner(private val context: Context, private val ocr: OcrTextExtracto
                         bmp.eraseColor(Color.WHITE)
                         page.render(bmp, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
                         (ocr.extract(bmp) as? OcrTextExtractor.Outcome.Text)?.let { t -> sb.append(t.value).append('\n') }
+                        qr.decode(bmp).forEach { v -> sb.append(v).append('\n') }
                         bmp.recycle()
                     }
                 }

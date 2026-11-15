@@ -66,13 +66,18 @@ object ScamTextAnalyzer {
         ),
     )
 
-    fun analyze(text: String): List<DetectedIndicator> {
+    /**
+     * Phrase indicators plus payment details (phone numbers, IBANs, crypto addresses).
+     * [homeCountry] is the user's ISO country code, used to recognize foreign numbers/IBANs.
+     */
+    fun analyze(text: String, homeCountry: String? = null): List<DetectedIndicator> {
         if (text.isBlank()) return emptyList()
         val t = fold(text.take(UrlExtractor.MAX_INPUT_CHARS))
-        return groups.mapNotNull { (indicator, phrases) ->
+        val phrases = groups.mapNotNull { (indicator, phrases) ->
             val hits = phrases.filter { p -> matches(t, fold(p)) }
             if (hits.isEmpty()) null else DetectedIndicator(indicator, hits.size.toString())
         }
+        return phrases + PaymentDetailsAnalyzer.analyze(text, homeCountry)
     }
 
     /**

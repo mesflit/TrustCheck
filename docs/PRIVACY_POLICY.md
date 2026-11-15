@@ -12,10 +12,12 @@ and why. The app’s source code is public (GPL-3.0-only), so every statement he
 |---|---|---|
 | Links you paste, share or open with TrustCheck | Security analysis | The privacy-reduced link (scheme, host, path; **no query string, fragment or credentials**), result and timestamp are kept in local history |
 | Text you share or select | Finding links and scam phrases | **Not stored.** Kept in memory for the current session only |
-| Screenshots you share | On-device text recognition (ML Kit) | **Not stored and never uploaded** |
+| Screenshots you share | On-device text recognition and QR decoding (ML Kit) | **Not stored and never uploaded** |
+| QR codes you scan with the camera | Google Play services' code scanner reads the code on the device and returns only its content; TrustCheck itself never gets camera access | The decoded link is handled like any other link; the camera image is not stored |
+| Phone numbers, IBANs and crypto addresses in text | Checked on the device for premium-rate, foreign or invalid values | **Not stored.** Reports show them masked |
 | Files you scan | On-device inspection: type, size, SHA-256, app permissions, links inside | File name, size, type, SHA-256 and (for apps) package name and permissions are kept in history. **File contents are never stored or uploaded** |
 | Notification text (only if you grant Notification Access and enable monitoring) | Finding links in incoming messages | **Never stored, logged or uploaded.** Only the privacy-reduced link and source app name are kept, and by default only when a warning was found |
-| Settings, AI usage counter | App functionality | Local only |
+| Settings | App functionality | Local only |
 
 Local data is excluded from cloud backups and device transfer. You can delete individual entries
 or all history, and choose a retention period (7–365 days).
@@ -28,6 +30,7 @@ or all history, and choose a retention period (7–365 days).
 | Online lookup with your own Safe Browsing key (default **off**) | Privacy-reduced links | Google Safe Browsing |
 | Reveal short-link destinations (default **off**) | A `HEAD` request to the link-shortening service (your IP address is visible to it) | The shortener |
 | "Look up on VirusTotal" button (only when you tap it) | The file's SHA-256 fingerprint, opened in your browser | VirusTotal (Google) |
+| "Report a wrong result" (only when you tap it and submit the form) | A **public** GitHub issue form prefilled with the query-free, defanged link or the file's SHA-256, the verdict, indicator names, sources and app version. Never message text, file names or masked numbers. Nothing is sent until you submit it yourself | GitHub |
 
 Files you scan are inspected on the device and are never uploaded. TrustCheck does not run its
 own server in the default build.

@@ -148,6 +148,8 @@ dependencies {
     implementation(libs.google.ump)
     implementation(libs.billing.ktx)
     implementation(libs.mlkit.text.recognition)
+    implementation(libs.mlkit.barcode.scanning)
+    implementation(libs.play.services.code.scanner)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

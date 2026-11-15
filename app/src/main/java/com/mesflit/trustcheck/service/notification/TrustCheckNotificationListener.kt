@@ -60,7 +60,7 @@ class TrustCheckNotificationListener : NotificationListenerService() {
         val text = extractVisibleText(sbn.notification) ?: return
         val urls = UrlExtractor.extract(text)
         if (urls.isEmpty()) return
-        val textIndicators = ScamTextAnalyzer.analyze(text)
+        val textIndicators = ScamTextAnalyzer.analyze(text, container.homeCountry)
         val app = appLabel(sbn.packageName)
         scope.launch { container.notificationProcessor.process(urls, textIndicators, app) }
     }

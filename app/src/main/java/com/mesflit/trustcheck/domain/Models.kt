@@ -9,7 +9,7 @@ import com.mesflit.trustcheck.core.security.SourceResult
 
 enum class TargetType { URL, TEXT, FILE }
 
-enum class ScanOrigin { MANUAL, SHARE_TEXT, SHARE_IMAGE, LINK_OPEN, TEXT_SELECTION, NOTIFICATION, FILE }
+enum class ScanOrigin { MANUAL, SHARE_TEXT, SHARE_IMAGE, LINK_OPEN, TEXT_SELECTION, NOTIFICATION, FILE, QR_CODE }
 
 enum class UserAction { NONE, OPENED_ANYWAY, DISMISSED }
 

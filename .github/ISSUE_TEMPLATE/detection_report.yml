@@ -1,0 +1,47 @@
+name: Wrong result report
+description: TrustCheck flagged something harmless, or missed something harmful.
+title: "[Detection] "
+labels: ["detection"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve TrustCheck. Please do **not** paste private messages, passwords,
+        account numbers or personal data here. Links are shown "defanged" (hxxp, [.]) so nobody clicks them by accident.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What went wrong?
+      options:
+        - False alarm
+        - Missed threat
+    validations:
+      required: true
+  - type: input
+    id: target
+    attributes:
+      label: Link or file fingerprint
+      description: Query-free link (defanged) or the file's SHA-256.
+    validations:
+      required: true
+  - type: input
+    id: verdict
+    attributes:
+      label: TrustCheck's result
+  - type: input
+    id: indicators
+    attributes:
+      label: Warning signs shown
+  - type: input
+    id: sources
+    attributes:
+      label: Sources checked
+  - type: input
+    id: version
+    attributes:
+      label: App version
+  - type: textarea
+    id: details
+    attributes:
+      label: Why do you think the result is wrong?
+      description: For example, "this is my bank's real domain" or "this site asked for my card details".

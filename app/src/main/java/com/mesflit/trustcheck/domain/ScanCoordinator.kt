@@ -27,6 +27,7 @@ class ScanCoordinator(
     private val scans: ScanRepository,
     private val settings: SettingsRepository,
     private val isOnline: () -> Boolean,
+    private val homeCountry: () -> String? = { null },
     private val clock: () -> Long = System::currentTimeMillis,
 ) {
     suspend fun options(): AnalysisOptions {
@@ -49,7 +50,7 @@ class ScanCoordinator(
     suspend fun scanText(text: String, origin: ScanOrigin): TextScanOutcome {
         val opts = options()
         val urls = UrlExtractor.extract(text)
-        val textIndicators = ScamTextAnalyzer.analyze(text)
+        val textIndicators = ScamTextAnalyzer.analyze(text, homeCountry())
         val items = if (urls.isEmpty()) {
             val r = ResultMerger.textOnly(textIndicators, clock())
             listOf(ScanOutcome(scans.save(r, TargetType.TEXT, origin, null), r))

@@ -37,6 +37,7 @@ class FileScanService(
     private val coordinator: ScanCoordinator,
     private val scans: ScanRepository,
     private val settings: SettingsRepository,
+    private val homeCountry: () -> String? = { null },
     private val clock: () -> Long = System::currentTimeMillis,
 ) {
     suspend fun scan(uri: Uri, origin: ScanOrigin = ScanOrigin.FILE): FileScanOutcome {
@@ -53,7 +54,7 @@ class FileScanService(
         if (text != null) {
             val options = coordinator.options()
             val urls = UrlExtractor.extract(text).filter { isRealLink(it) }.take(MAX_LINKS)
-            phraseIndicators = ScamTextAnalyzer.analyze(text)
+            phraseIndicators = ScamTextAnalyzer.analyze(text, homeCountry())
             for (u in urls) {
                 val r: UrlAnalysisResult = ResultMerger.withTextSignals(engine.analyze(u, options), phraseIndicators)
                 if (r.classification == RiskClassification.ANALYSIS_FAILED) continue

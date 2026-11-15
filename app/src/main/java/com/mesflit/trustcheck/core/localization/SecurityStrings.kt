@@ -82,6 +82,12 @@ object SecurityStrings {
         Indicator.CREDENTIAL_REQUEST -> R.string.ind_credentials
         Indicator.PRIZE_OR_MONEY_LURE -> R.string.ind_prize
         Indicator.PAYMENT_OR_FEE_REQUEST -> R.string.ind_payment
+        Indicator.PREMIUM_RATE_NUMBER -> R.string.ind_premium_number
+        Indicator.INTERNATIONAL_NETWORK_NUMBER -> R.string.ind_intl_network
+        Indicator.FOREIGN_PHONE_NUMBER -> R.string.ind_foreign_phone
+        Indicator.FOREIGN_IBAN -> R.string.ind_foreign_iban
+        Indicator.INVALID_IBAN -> R.string.ind_invalid_iban
+        Indicator.CRYPTO_ADDRESS -> R.string.ind_crypto
         Indicator.DOUBLE_EXTENSION -> R.string.ind_double_ext
         Indicator.EXTENSION_MISMATCH -> R.string.ind_ext_mismatch
         Indicator.EXECUTABLE_FILE -> R.string.ind_executable_file
@@ -132,6 +138,12 @@ object SecurityStrings {
         Indicator.CREDENTIAL_REQUEST -> R.string.ind_credentials_desc
         Indicator.PRIZE_OR_MONEY_LURE -> R.string.ind_prize_desc
         Indicator.PAYMENT_OR_FEE_REQUEST -> R.string.ind_payment_desc
+        Indicator.PREMIUM_RATE_NUMBER -> R.string.ind_premium_number_desc
+        Indicator.INTERNATIONAL_NETWORK_NUMBER -> R.string.ind_intl_network_desc
+        Indicator.FOREIGN_PHONE_NUMBER -> R.string.ind_foreign_phone_desc
+        Indicator.FOREIGN_IBAN -> R.string.ind_foreign_iban_desc
+        Indicator.INVALID_IBAN -> R.string.ind_invalid_iban_desc
+        Indicator.CRYPTO_ADDRESS -> R.string.ind_crypto_desc
         Indicator.DOUBLE_EXTENSION -> R.string.ind_double_ext_desc
         Indicator.EXTENSION_MISMATCH -> R.string.ind_ext_mismatch_desc
         Indicator.EXECUTABLE_FILE -> R.string.ind_executable_file_desc
@@ -177,5 +189,6 @@ object SecurityStrings {
         ScanOrigin.TEXT_SELECTION -> R.string.origin_selection
         ScanOrigin.NOTIFICATION -> R.string.origin_notification
         ScanOrigin.FILE -> R.string.origin_file
+        ScanOrigin.QR_CODE -> R.string.origin_qr
     }
 }

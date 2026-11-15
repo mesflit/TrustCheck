@@ -18,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.ContentPaste
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -49,6 +50,7 @@ import com.mesflit.trustcheck.core.design.RiskBadge
 import com.mesflit.trustcheck.core.design.SectionCard
 import com.mesflit.trustcheck.core.localization.SecurityStrings
 import com.mesflit.trustcheck.core.ocr.OcrTextExtractor
+import com.mesflit.trustcheck.core.qr.QrDecoder
 import com.mesflit.trustcheck.core.security.RiskClassification
 import com.mesflit.trustcheck.core.security.UrlExtractor
 import com.mesflit.trustcheck.domain.ScanOrigin
@@ -60,7 +62,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-enum class ScannerNotice { NONE, EMPTY_INPUT, OCR_NO_TEXT, OCR_FAILED, OFFLINE, FILE_FAILED }
+enum class ScannerNotice { NONE, EMPTY_INPUT, OCR_NO_TEXT, OCR_FAILED, OFFLINE, FILE_FAILED, QR_UNAVAILABLE }
 
 data class ScannerState(
     val input: String = "",
@@ -99,11 +101,29 @@ class ScannerViewModel(private val c: AppContainer) : ViewModel() {
             is PendingScan.File -> scanFile(p.uri)
             is PendingScan.Image -> viewModelScope.launch {
                 _state.update { ScannerState(ocrRunning = true) }
-                when (val o = c.ocr.extract(p.uri)) {
-                    is OcrTextExtractor.Outcome.Text -> { _state.update { it.copy(ocrRunning = false, input = o.value) }; scan(ScanOrigin.SHARE_IMAGE) }
-                    OcrTextExtractor.Outcome.NoText -> _state.update { it.copy(ocrRunning = false, notice = ScannerNotice.OCR_NO_TEXT) }
-                    is OcrTextExtractor.Outcome.Failed -> _state.update { it.copy(ocrRunning = false, notice = ScannerNotice.OCR_FAILED) }
+                val qrValues = c.qr.decode(p.uri)
+                val combined = when (val o = c.ocr.extract(p.uri)) {
+                    is OcrTextExtractor.Outcome.Text -> (qrValues + o.value).joinToString("\n")
+                    else -> qrValues.joinToString("\n")
                 }
+                if (combined.isNotBlank()) {
+                    _state.update { it.copy(ocrRunning = false, input = combined) }
+                    scan(if (qrValues.isNotEmpty()) ScanOrigin.QR_CODE else ScanOrigin.SHARE_IMAGE)
+                } else {
+                    _state.update { it.copy(ocrRunning = false, notice = ScannerNotice.OCR_NO_TEXT) }
+                }
+            }
+        }
+    }
+
+    /** Opens Google's code scanner (no camera permission for TrustCheck) and analyzes the content. */
+    fun scanQrWithCamera() {
+        if (_state.value.scanning) return
+        viewModelScope.launch {
+            when (val r = c.qr.scanWithCamera()) {
+                is QrDecoder.CameraResult.Value -> { onInput(r.text); scan(ScanOrigin.QR_CODE) }
+                QrDecoder.CameraResult.Cancelled -> Unit
+                is QrDecoder.CameraResult.Unavailable -> _state.update { it.copy(notice = ScannerNotice.QR_UNAVAILABLE) }
             }
         }
     }
@@ -174,6 +194,7 @@ fun ScannerScreen(onOpenReport: (Long) -> Unit) {
         onScan = { vm.scan() },
         onOpenReport = onOpenReport,
         onPickFile = { pickFile.launch(arrayOf("*/*")) },
+        onScanQr = vm::scanQrWithCamera,
     )
     LaunchedEffect(state.openReport) {
         state.openReport?.let { vm.consumeNavigation(); onOpenReport(it) }
@@ -189,6 +210,7 @@ fun ScannerContent(
     onScan: () -> Unit,
     onOpenReport: (Long) -> Unit,
     onPickFile: () -> Unit = {},
+    onScanQr: () -> Unit = {},
 ) {
     val busy = state.scanning || state.ocrRunning || state.fileRunning
     Column(
@@ -229,10 +251,17 @@ fun ScannerContent(
                 }
             }
         }
-        OutlinedButton(onClick = onPickFile, enabled = !busy, modifier = Modifier.fillMaxWidth().testTag("scanner_file")) {
-            Icon(Icons.Filled.UploadFile, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(6.dp))
-            Text(stringResource(R.string.scanner_scan_file))
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            OutlinedButton(onClick = onScanQr, enabled = !busy, modifier = Modifier.weight(1f).testTag("scanner_qr")) {
+                Icon(Icons.Filled.QrCodeScanner, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.scanner_scan_qr))
+            }
+            OutlinedButton(onClick = onPickFile, enabled = !busy, modifier = Modifier.weight(1f).testTag("scanner_file")) {
+                Icon(Icons.Filled.UploadFile, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.scanner_scan_file))
+            }
         }
         Text(stringResource(R.string.scanner_file_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         if (busy) {
@@ -245,6 +274,7 @@ fun ScannerContent(
             ScannerNotice.OCR_FAILED -> Notice(stringResource(R.string.scanner_ocr_failed))
             ScannerNotice.OFFLINE -> Notice(stringResource(R.string.scanner_offline_note))
             ScannerNotice.FILE_FAILED -> Notice(stringResource(R.string.scanner_file_failed))
+            ScannerNotice.QR_UNAVAILABLE -> Notice(stringResource(R.string.scanner_qr_unavailable))
             else -> Unit
         }
         if (state.results.isNotEmpty()) {
