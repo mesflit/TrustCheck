@@ -30,16 +30,9 @@ data class ScanEntity(
     val origin: String,
     @ColumnInfo(name = "source_app") val sourceApp: String?,
     @ColumnInfo(name = "user_action") val userAction: String,
-    /** JSON AI explanation, or null. */
+    /** Unused since v2 (AI removed); kept so existing databases need no column drop. */
     @ColumnInfo(name = "ai_explanation") val aiExplanation: String?,
+    /** JSON file metadata for FILE scans (added in schema v2). */
+    @ColumnInfo(name = "file_info") val fileInfo: String? = null,
     val timestamp: Long,
-)
-
-/** Domain entries synced from the TrustCheck threat feed (never bundled or invented). */
-@Entity(tableName = "blocklist")
-data class BlocklistEntity(
-    @PrimaryKey val domain: String,
-    val category: String,
-    val source: String,
-    @ColumnInfo(name = "updated_at") val updatedAt: Long,
 )

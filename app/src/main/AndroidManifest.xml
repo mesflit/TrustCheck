@@ -50,11 +50,24 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
 
-            <!-- Sharesheet: screenshots / images (on-device OCR) -->
+            <!-- Sharesheet: screenshots (on-device OCR) and any file (file scanning) -->
             <intent-filter android:label="@string/share_target_label">
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="image/*" />
+                <data android:mimeType="application/*" />
+                <data android:mimeType="text/*" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+
+            <!-- "Open with TrustCheck" for downloaded app packages and documents: inspected, never installed or opened. -->
+            <intent-filter android:label="@string/file_target_label">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" />
+                <data android:mimeType="application/vnd.android.package-archive" />
+                <data android:mimeType="application/pdf" />
+                <data android:mimeType="application/zip" />
             </intent-filter>
 
             <!-- Text selection toolbar: "Check with TrustCheck" -->

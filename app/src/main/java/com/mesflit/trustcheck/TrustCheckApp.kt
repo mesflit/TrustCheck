@@ -27,7 +27,7 @@ class TrustCheckApp : Application(), Configuration.Provider {
         appScope.launch {
             val s = container.settings.current()
             container.notifier.ensureChannels(s.language)
-            container.scheduler.schedulePeriodic(s, container.backend.isConfigured)
+            container.scheduler.schedulePeriodic(s, firstFeedNeeded = container.threatFeed.status().count == 0)
         }
     }
 }

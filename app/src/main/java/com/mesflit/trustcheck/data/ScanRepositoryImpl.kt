@@ -1,14 +1,11 @@
 // TrustCheck — Copyright (C) 2026 Mesflit — SPDX-License-Identifier: GPL-3.0-only
 package com.mesflit.trustcheck.data
 
-import com.mesflit.trustcheck.core.database.BlocklistDao
-import com.mesflit.trustcheck.core.database.BlocklistEntity
 import com.mesflit.trustcheck.core.database.ScanDao
 import com.mesflit.trustcheck.core.database.ScanEntity
-import com.mesflit.trustcheck.core.security.LocalBlocklist
+import com.mesflit.trustcheck.core.security.FileFacts
 import com.mesflit.trustcheck.core.security.RiskClassification
 import com.mesflit.trustcheck.core.security.UrlAnalysisResult
-import com.mesflit.trustcheck.domain.AiExplanation
 import com.mesflit.trustcheck.domain.ScanOrigin
 import com.mesflit.trustcheck.domain.ScanRecord
 import com.mesflit.trustcheck.domain.ScanRepository
@@ -21,7 +18,7 @@ import kotlinx.coroutines.flow.map
 
 class ScanRepositoryImpl(private val dao: ScanDao) : ScanRepository {
 
-    override suspend fun save(result: UrlAnalysisResult, targetType: TargetType, origin: ScanOrigin, sourceApp: String?): Long =
+    override suspend fun save(result: UrlAnalysisResult, targetType: TargetType, origin: ScanOrigin, sourceApp: String?, file: FileFacts?): Long =
         dao.insert(
             ScanEntity(
                 targetType = targetType.name,
@@ -37,6 +34,7 @@ class ScanRepositoryImpl(private val dao: ScanDao) : ScanRepository {
                 sourceApp = sourceApp,
                 userAction = UserAction.NONE.name,
                 aiExplanation = null,
+                fileInfo = file?.let { StorageJson.encodeFile(it) },
                 timestamp = result.timestampMillis,
             ),
         )
@@ -74,8 +72,6 @@ class ScanRepositoryImpl(private val dao: ScanDao) : ScanRepository {
 
     override suspend fun setUserAction(id: Long, action: UserAction) = dao.updateUserAction(id, action.name)
 
-    override suspend fun attachAi(id: Long, ai: AiExplanation) = dao.updateAi(id, StorageJson.encodeAi(ai))
-
     override suspend fun delete(id: Long) = dao.delete(id)
 
     override suspend fun clearAll() = dao.clear()
@@ -85,14 +81,4 @@ class ScanRepositoryImpl(private val dao: ScanDao) : ScanRepository {
     companion object {
         val ALERT_CLASSES = listOf(RiskClassification.CONFIRMED_MALICIOUS.name, RiskClassification.SUSPICIOUS.name)
     }
-}
-
-/** Room-backed [LocalBlocklist], populated only by [com.mesflit.trustcheck.service.background.ThreatFeedSyncWorker]. */
-class RoomBlocklist(private val dao: BlocklistDao) : LocalBlocklist {
-    override suspend fun isEmpty(): Boolean = dao.count() == 0
-    override suspend fun match(hostAndParents: List<String>): String? = dao.firstMatch(hostAndParents)?.let { "${it.category}@${it.source}" }
-    suspend fun replaceAll(entries: List<BlocklistEntity>) = dao.replaceAll(entries)
-    suspend fun upsert(entries: List<BlocklistEntity>) = dao.upsert(entries)
-    suspend fun remove(domains: List<String>) = dao.remove(domains)
-    suspend fun count(): Int = dao.count()
 }

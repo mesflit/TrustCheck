@@ -22,8 +22,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.CloudQueue
+import androidx.compose.material.icons.filled.Assessment
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Sms
+import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material.icons.filled.UploadFile
+import androidx.compose.material.icons.filled.VolunteerActivism
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Button
@@ -59,7 +69,7 @@ import com.mesflit.trustcheck.feature.settings.postNotificationsGranted
 import com.mesflit.trustcheck.ui.LocalAppContainer
 import kotlinx.coroutines.launch
 
-private const val PAGES = 5
+private const val PAGES = 6
 
 @Composable
 fun OnboardingScreen(onFinished: () -> Unit) {
@@ -80,8 +90,13 @@ fun OnboardingScreen(onFinished: () -> Unit) {
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 when (p) {
                     0 -> Page(Icons.Filled.Shield, R.string.onboarding_welcome_title, R.string.onboarding_welcome_body)
-                    1 -> Page(Icons.Filled.AutoAwesome, R.string.onboarding_how_title, R.string.onboarding_how_body)
-                    2 -> {
+                    1 -> {
+                        Text(stringResource(R.string.onboarding_features_title), style = MaterialTheme.typography.headlineSmall)
+                        Text(stringResource(R.string.onboarding_features_body), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        FEATURES.forEach { (icon, title, body) -> FeatureRow(icon, title, body) }
+                    }
+                    2 -> Page(Icons.Filled.AutoAwesome, R.string.onboarding_how_title, R.string.onboarding_how_body)
+                    3 -> {
                         Page(Icons.Filled.NotificationsActive, R.string.onboarding_perm_title, R.string.onboarding_perm_body)
                         PermissionCard(
                             title = stringResource(R.string.onboarding_perm_notif_access),
@@ -102,15 +117,12 @@ fun OnboardingScreen(onFinished: () -> Unit) {
                         }
                         Text(stringResource(R.string.onboarding_optional), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    3 -> {
-                        Page(Icons.Filled.CloudQueue, R.string.onboarding_cloud_title, R.string.onboarding_cloud_body)
+                    4 -> {
+                        Page(Icons.Filled.Security, R.string.onboarding_feed_title, R.string.onboarding_feed_body)
                         val s = settings
                         if (s != null) {
-                            ToggleCard(stringResource(R.string.settings_cloud_ti), stringResource(R.string.settings_cloud_ti_desc), s.cloudThreatIntel) { v ->
-                                scope.launch { container.settings.update { it.copy(cloudThreatIntel = v) } }
-                            }
-                            ToggleCard(stringResource(R.string.settings_cloud_ai), stringResource(R.string.settings_cloud_ai_desc), s.cloudAi) { v ->
-                                scope.launch { container.settings.update { it.copy(cloudAi = v) } }
+                            ToggleCard(stringResource(R.string.settings_feed), stringResource(R.string.settings_feed_desc), s.threatFeed) { v ->
+                                scope.launch { container.settings.update { it.copy(threatFeed = v) } }
                             }
                         }
                         Text(stringResource(R.string.onboarding_optional), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -129,6 +141,34 @@ fun OnboardingScreen(onFinished: () -> Unit) {
             } else {
                 Button(onClick = onFinished, modifier = Modifier.testTag("onboarding_finish")) { Text(stringResource(R.string.onboarding_finish)) }
             }
+        }
+    }
+}
+
+/** Every feature, explained on first launch. */
+private val FEATURES: List<Triple<ImageVector, Int, Int>> = listOf(
+    Triple(Icons.Filled.Link, R.string.feat_links_title, R.string.feat_links_desc),
+    Triple(Icons.Filled.Sms, R.string.feat_messages_title, R.string.feat_messages_desc),
+    Triple(Icons.Filled.NotificationsActive, R.string.feat_notifications_title, R.string.feat_notifications_desc),
+    Triple(Icons.Filled.Share, R.string.feat_share_title, R.string.feat_share_desc),
+    Triple(Icons.Filled.Image, R.string.feat_screenshots_title, R.string.feat_screenshots_desc),
+    Triple(Icons.Filled.UploadFile, R.string.feat_files_title, R.string.feat_files_desc),
+    Triple(Icons.Filled.Security, R.string.feat_feed_title, R.string.feat_feed_desc),
+    Triple(Icons.Filled.Assessment, R.string.feat_reports_title, R.string.feat_reports_desc),
+    Triple(Icons.Filled.History, R.string.feat_history_title, R.string.feat_history_desc),
+    Triple(Icons.Filled.WifiOff, R.string.feat_offline_title, R.string.feat_offline_desc),
+    Triple(Icons.Filled.Translate, R.string.feat_languages_title, R.string.feat_languages_desc),
+    Triple(Icons.Filled.VolunteerActivism, R.string.feat_free_title, R.string.feat_free_desc),
+)
+
+@Composable
+private fun FeatureRow(icon: ImageVector, title: Int, body: Int) {
+    Row(verticalAlignment = Alignment.Top) {
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(top = 2.dp).size(24.dp))
+        Spacer(Modifier.width(14.dp))
+        Column {
+            Text(stringResource(title), style = MaterialTheme.typography.titleSmall)
+            Text(stringResource(body), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

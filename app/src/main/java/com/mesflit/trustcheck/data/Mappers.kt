@@ -3,13 +3,14 @@ package com.mesflit.trustcheck.data
 
 import com.mesflit.trustcheck.core.database.ScanEntity
 import com.mesflit.trustcheck.core.security.AnalysisSource
+import com.mesflit.trustcheck.core.security.ApkFacts
 import com.mesflit.trustcheck.core.security.DetectedIndicator
+import com.mesflit.trustcheck.core.security.FileFacts
+import com.mesflit.trustcheck.core.security.FileKind
 import com.mesflit.trustcheck.core.security.Indicator
 import com.mesflit.trustcheck.core.security.RiskClassification
 import com.mesflit.trustcheck.core.security.SourceResult
 import com.mesflit.trustcheck.core.security.SourceStatus
-import com.mesflit.trustcheck.domain.AiExplanation
-import com.mesflit.trustcheck.domain.AiIndicatorNote
 import com.mesflit.trustcheck.domain.ScanOrigin
 import com.mesflit.trustcheck.domain.ScanRecord
 import com.mesflit.trustcheck.domain.TargetType
@@ -26,18 +27,25 @@ internal data class StoredIndicator(val code: String, val detail: String? = null
 internal data class StoredSource(val source: String, val status: String, val detail: String? = null)
 
 @Serializable
-internal data class StoredAiNote(val code: String, val explanation: String)
+internal data class StoredApk(
+    val packageName: String? = null,
+    val appLabel: String? = null,
+    val versionName: String? = null,
+    val permissions: List<String> = emptyList(),
+    val accessibility: Boolean = false,
+    val notificationListener: Boolean = false,
+    val deviceAdmin: Boolean = false,
+    val debugSigned: Boolean = false,
+)
 
 @Serializable
-internal data class StoredAi(
-    val verdict: String,
-    val riskScore: Int? = null,
-    val summary: String,
-    val notes: List<StoredAiNote> = emptyList(),
-    val recommendations: List<String> = emptyList(),
-    val language: String,
-    val model: String,
-    val createdAt: Long,
+internal data class StoredFile(
+    val name: String,
+    val size: Long,
+    val mime: String? = null,
+    val kind: String,
+    val sha256: String,
+    val apk: StoredApk? = null,
 )
 
 internal object StorageJson {
@@ -63,16 +71,23 @@ internal object StorageJson {
         }
     }.getOrDefault(emptyList())
 
-    fun encodeAi(ai: AiExplanation): String = json.encodeToString(
-        StoredAi(ai.verdict, ai.riskScore, ai.summary, ai.notes.map { StoredAiNote(it.code, it.explanation) }, ai.recommendations, ai.language, ai.model, ai.createdAt),
+    fun encodeFile(f: FileFacts): String = json.encodeToString(
+        StoredFile(
+            f.displayName, f.sizeBytes, f.declaredMime, f.kind.name, f.sha256,
+            f.apk?.let { StoredApk(it.packageName, it.appLabel, it.versionName, it.permissions, it.hasAccessibilityService, it.hasNotificationListener, it.hasDeviceAdmin, it.debugSigned) },
+        ),
     )
 
-    fun decodeAi(s: String?): AiExplanation? = s?.let {
+    fun decodeFile(s: String?): FileFacts? = s?.let {
         runCatching {
-            val a = json.decodeFromString<StoredAi>(it)
-            AiExplanation(a.verdict, a.riskScore, a.summary, a.notes.map { n -> AiIndicatorNote(n.code, n.explanation) }, a.recommendations, a.language, a.model, a.createdAt)
+            val f = json.decodeFromString<StoredFile>(it)
+            FileFacts(
+                f.name, f.size, f.mime, enumValueOrNull<FileKind>(f.kind) ?: FileKind.UNKNOWN, f.sha256,
+                f.apk?.let { a -> ApkFacts(a.packageName, a.appLabel, a.versionName, a.permissions, a.accessibility, a.notificationListener, a.deviceAdmin, a.debugSigned) },
+            )
         }.getOrNull()
     }
+
 }
 
 internal inline fun <reified T : Enum<T>> enumValueOrNull(name: String?): T? =
@@ -92,6 +107,6 @@ internal fun ScanEntity.toDomain() = ScanRecord(
     origin = enumValueOrNull<ScanOrigin>(origin) ?: ScanOrigin.MANUAL,
     sourceApp = sourceApp,
     userAction = enumValueOrNull<UserAction>(userAction) ?: UserAction.NONE,
-    ai = StorageJson.decodeAi(aiExplanation),
+    file = StorageJson.decodeFile(fileInfo),
     timestamp = timestamp,
 )

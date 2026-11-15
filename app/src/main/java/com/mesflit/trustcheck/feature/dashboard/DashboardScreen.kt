@@ -84,7 +84,7 @@ class DashboardViewModel(c: AppContainer) : ViewModel() {
         c.settings.settings,
         c.billing.entitlement,
     ) { stats, alerts, s, e ->
-        DashboardState(stats, maxOf(s.totalScans, stats.total.toLong()), alerts, s.notificationMonitoring, s.cloudThreatIntel, e)
+        DashboardState(stats, maxOf(s.totalScans, stats.total.toLong()), alerts, s.notificationMonitoring, s.threatFeed, e)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DashboardState())
 }
 

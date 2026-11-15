@@ -2,6 +2,7 @@
 package com.mesflit.trustcheck.core.ocr
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.net.Uri
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
@@ -21,10 +22,16 @@ class OcrTextExtractor(private val context: Context) {
         data class Failed(val reason: String) : Outcome
     }
 
-    suspend fun extract(uri: Uri): Outcome {
+    suspend fun extract(uri: Uri): Outcome = recognize(
+        try { InputImage.fromFilePath(context, uri) } catch (e: IOException) { return Outcome.Failed("io") },
+    )
+
+    /** OCR for rendered PDF pages. */
+    suspend fun extract(bitmap: Bitmap): Outcome = recognize(InputImage.fromBitmap(bitmap, 0))
+
+    private suspend fun recognize(image: InputImage): Outcome {
         val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
         return try {
-            val image = InputImage.fromFilePath(context, uri)
             val text = recognizer.process(image).await().text
             if (text.isBlank()) Outcome.NoText else Outcome.Text(text)
         } catch (e: IOException) {

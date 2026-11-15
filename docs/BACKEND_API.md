@@ -1,6 +1,6 @@
 # TrustCheck-Backend API contract
 
-The backend is **optional** and lives in the private repository `mesflit/TrustCheck-Backend`.
+The backend is **optional and not used by the default (zero-cost) build** and lives in the private repository `mesflit/TrustCheck-Backend`.
 The client works fully offline without it. This document is the contract the Android client
 implements (`core/network`). No backend code is in this public repository.
 
@@ -9,7 +9,7 @@ Base URL: injected at build time (`trustcheck.backendBaseUrl` / `TRUSTCHECK_BACK
 
 ## Responsibilities
 
-AI analysis (provider key stays server-side), threat-intelligence aggregation (use
+Threat-intelligence aggregation (use
 **commercial-use** sources such as Google Web Risk; the free Safe Browsing API is non-commercial),
 rate limiting and abuse prevention, Play subscription verification, and optional sync later.
 
@@ -39,14 +39,7 @@ Response: `{ "results": [ { "url", "verdict": "malicious"|"clean"|"unknown", "th
 Only `"clean"` counts as an answer. `"unknown"` means the lookup was inconclusive and the client
 shows **Unknown**.
 
-### `POST /v1/ai/analyze`
-Request: `{ "url"?, "text"?, "language": "tr", "localIndicators": ["LOOKALIKE_BRAND"], "localClassification": "SUSPICIOUS" }`
-`text` is sent only when the user ticks “also send the message text”.
-Response (structured; written in `language`):
-`{ "verdict", "riskScore"?: 0-100, "summary", "indicators": [{ "code", "explanation" }], "recommendations": [], "language", "model" }`
-Timeout on the client: 30 s. Client limit: 5 requests per minute plus a fair-use quota of 20 per day, identical for all users. Enforce the authoritative limit server-side.
-
-### `GET /v1/blocklist?since=<version>`
+### `GET /v1/blocklist?since=<version>` (unused: the app now uses the GitHub-hosted threat list)
 Response: `{ "version", "full": bool, "added": [{ "domain", "category", "source" }], "removed": ["domain"] }`
 Synced at most daily, on network and when the battery is not low, and only with cloud consent.
 

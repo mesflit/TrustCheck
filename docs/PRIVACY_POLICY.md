@@ -13,25 +13,24 @@ and why. The app’s source code is public (GPL-3.0-only), so every statement he
 | Links you paste, share or open with TrustCheck | Security analysis | The privacy-reduced link (scheme, host, path; **no query string, fragment or credentials**), result and timestamp are kept in local history |
 | Text you share or select | Finding links and scam phrases | **Not stored.** Kept in memory for the current session only |
 | Screenshots you share | On-device text recognition (ML Kit) | **Not stored and never uploaded** |
+| Files you scan | On-device inspection: type, size, SHA-256, app permissions, links inside | File name, size, type, SHA-256 and (for apps) package name and permissions are kept in history. **File contents are never stored or uploaded** |
 | Notification text (only if you grant Notification Access and enable monitoring) | Finding links in incoming messages | **Never stored, logged or uploaded.** Only the privacy-reduced link and source app name are kept, and by default only when a warning was found |
 | Settings, AI usage counter | App functionality | Local only |
 
 Local data is excluded from cloud backups and device transfer. You can delete individual entries
 or all history, and choose a retention period (7–365 days).
 
-## 2. Data sent off the device (only with your consent)
+## 2. Data sent off the device
 
-| Feature (default **off**) | What is sent | Recipient |
+| Feature | What is sent | Recipient |
 |---|---|---|
-| Cloud threat intelligence | Privacy-reduced links | TrustCheck backend, which queries threat-intelligence providers such as Google Web Risk |
-| Your own Safe Browsing key (optional) | Privacy-reduced links | Google Safe Browsing |
-| Reveal short-link destinations | A `HEAD` request to the link-shortening service (your IP address is visible to it) | The shortener |
-| AI explanations (on request) | The privacy-reduced link, detected indicator codes, your app language; the message text only if you tick the option | TrustCheck backend and its AI provider |
-| Diagnostics | App and Android version with cloud requests | TrustCheck backend |
+| Daily threat list (default **on**, can be turned off) | Nothing about you: the app *downloads* a public list once a day. GitHub sees your IP address, as for any download | GitHub (github.com and its download servers) |
+| Online lookup with your own Safe Browsing key (default **off**) | Privacy-reduced links | Google Safe Browsing |
+| Reveal short-link destinations (default **off**) | A `HEAD` request to the link-shortening service (your IP address is visible to it) | The shortener |
+| "Look up on VirusTotal" button (only when you tap it) | The file's SHA-256 fingerprint, opened in your browser | VirusTotal (Google) |
 
-The backend receives an anonymous, random install identifier for rate limiting. It does not log
-message text or full URLs and keeps operational logs for a short time (to be set by the backend
-operator, e.g. 30 days).
+Files you scan are inspected on the device and are never uploaded. TrustCheck does not run its
+own server in the default build.
 
 ## 3. Advertising (free version)
 
@@ -59,9 +58,8 @@ The app is not directed at children under 13 (or the age required in your countr
 
 ## 7. Your rights
 
-Under GDPR/KVKK and similar laws you can request access to or deletion of data held by the
-backend. Because the backend only sees anonymous install IDs, include the details shown in the
-app. Local data is under your control in the app.
+Under GDPR/KVKK and similar laws you have rights over your personal data. TrustCheck keeps your
+data on your device, where you can view and delete it at any time.
 
 ## 8. Contact
 

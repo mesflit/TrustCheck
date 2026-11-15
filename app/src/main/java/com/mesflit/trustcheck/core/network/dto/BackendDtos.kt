@@ -21,29 +21,6 @@ data class ThreatLookupResult(val url: String, val verdict: String, val threatTy
 data class ThreatLookupResponse(val results: List<ThreatLookupResult>)
 
 @Serializable
-data class AiAnalyzeRequest(
-    val url: String? = null,
-    val text: String? = null,
-    val language: String,
-    val localIndicators: List<String> = emptyList(),
-    val localClassification: String,
-)
-
-@Serializable
-data class AiIndicatorDto(val code: String, val explanation: String)
-
-@Serializable
-data class AiAnalyzeResponse(
-    val verdict: String,
-    val riskScore: Int? = null,
-    val summary: String,
-    val indicators: List<AiIndicatorDto> = emptyList(),
-    val recommendations: List<String> = emptyList(),
-    val language: String,
-    val model: String,
-)
-
-@Serializable
 data class BlocklistEntryDto(val domain: String, val category: String, val source: String)
 
 @Serializable

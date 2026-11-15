@@ -1,6 +1,8 @@
 // TrustCheck — Copyright (C) 2026 Mesflit — SPDX-License-Identifier: GPL-3.0-only
 package com.mesflit.trustcheck.feature.scanner
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.ContentPaste
+import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -57,12 +60,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-enum class ScannerNotice { NONE, EMPTY_INPUT, OCR_NO_TEXT, OCR_FAILED, OFFLINE }
+enum class ScannerNotice { NONE, EMPTY_INPUT, OCR_NO_TEXT, OCR_FAILED, OFFLINE, FILE_FAILED }
 
 data class ScannerState(
     val input: String = "",
     val scanning: Boolean = false,
     val ocrRunning: Boolean = false,
+    val fileRunning: Boolean = false,
     val results: List<ScanOutcome> = emptyList(),
     val textOnly: Boolean = false,
     val notice: ScannerNotice = ScannerNotice.NONE,
@@ -92,6 +96,7 @@ class ScannerViewModel(private val c: AppContainer) : ViewModel() {
     private fun handle(p: PendingScan) {
         when (p) {
             is PendingScan.Text -> { onInput(p.text); scan(p.origin) }
+            is PendingScan.File -> scanFile(p.uri)
             is PendingScan.Image -> viewModelScope.launch {
                 _state.update { ScannerState(ocrRunning = true) }
                 when (val o = c.ocr.extract(p.uri)) {
@@ -99,6 +104,24 @@ class ScannerViewModel(private val c: AppContainer) : ViewModel() {
                     OcrTextExtractor.Outcome.NoText -> _state.update { it.copy(ocrRunning = false, notice = ScannerNotice.OCR_NO_TEXT) }
                     is OcrTextExtractor.Outcome.Failed -> _state.update { it.copy(ocrRunning = false, notice = ScannerNotice.OCR_FAILED) }
                 }
+            }
+        }
+    }
+
+    /** Inspects a file on the device and analyzes any links inside it. */
+    fun scanFile(uri: android.net.Uri) {
+        if (_state.value.fileRunning) return
+        _state.update { ScannerState(fileRunning = true) }
+        viewModelScope.launch {
+            val o = c.fileScan.scan(uri)
+            val all = listOfNotNull(o.file) + o.links
+            _state.update {
+                it.copy(
+                    fileRunning = false,
+                    results = all,
+                    notice = if (o.file == null) ScannerNotice.FILE_FAILED else ScannerNotice.NONE,
+                    openReport = o.file?.recordId?.takeIf { o.links.isEmpty() },
+                )
             }
         }
     }
@@ -142,6 +165,7 @@ fun ScannerScreen(onOpenReport: (Long) -> Unit) {
     val vm = containerViewModel { ScannerViewModel(it) }
     val state by vm.state.collectAsStateWithLifecycle()
     val clipboard = LocalClipboardManager.current
+    val pickFile = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> uri?.let(vm::scanFile) }
     ScannerContent(
         state = state,
         onInput = vm::onInput,
@@ -149,6 +173,7 @@ fun ScannerScreen(onOpenReport: (Long) -> Unit) {
         onClear = vm::clear,
         onScan = { vm.scan() },
         onOpenReport = onOpenReport,
+        onPickFile = { pickFile.launch(arrayOf("*/*")) },
     )
     LaunchedEffect(state.openReport) {
         state.openReport?.let { vm.consumeNavigation(); onOpenReport(it) }
@@ -163,7 +188,9 @@ fun ScannerContent(
     onClear: () -> Unit,
     onScan: () -> Unit,
     onOpenReport: (Long) -> Unit,
+    onPickFile: () -> Unit = {},
 ) {
+    val busy = state.scanning || state.ocrRunning || state.fileRunning
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp).testTag("scanner"),
         verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -177,7 +204,7 @@ fun ScannerContent(
             placeholder = { Text(stringResource(R.string.scanner_input_hint)) },
             minLines = 3,
             maxLines = 8,
-            enabled = !state.scanning && !state.ocrRunning,
+            enabled = !busy,
             trailingIcon = {
                 if (state.input.isNotEmpty()) {
                     IconButton(onClick = onClear) { Icon(Icons.Filled.Clear, contentDescription = stringResource(R.string.scanner_clear)) }
@@ -187,12 +214,12 @@ fun ScannerContent(
             supportingText = { if (state.notice == ScannerNotice.EMPTY_INPUT) Text(stringResource(R.string.scanner_empty_input)) },
         )
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            OutlinedButton(onClick = onPaste, enabled = !state.scanning, modifier = Modifier.testTag("scanner_paste")) {
+            OutlinedButton(onClick = onPaste, enabled = !busy, modifier = Modifier.testTag("scanner_paste")) {
                 Icon(Icons.Filled.ContentPaste, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
                 Text(stringResource(R.string.scanner_paste))
             }
-            Button(onClick = onScan, enabled = !state.scanning && !state.ocrRunning, modifier = Modifier.weight(1f).testTag("scanner_scan")) {
+            Button(onClick = onScan, enabled = !busy, modifier = Modifier.weight(1f).testTag("scanner_scan")) {
                 if (state.scanning) {
                     CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
                     Spacer(Modifier.width(8.dp))
@@ -202,14 +229,22 @@ fun ScannerContent(
                 }
             }
         }
-        if (state.scanning || state.ocrRunning) {
+        OutlinedButton(onClick = onPickFile, enabled = !busy, modifier = Modifier.fillMaxWidth().testTag("scanner_file")) {
+            Icon(Icons.Filled.UploadFile, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(6.dp))
+            Text(stringResource(R.string.scanner_scan_file))
+        }
+        Text(stringResource(R.string.scanner_file_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (busy) {
             LinearProgressIndicator(Modifier.fillMaxWidth().testTag("scanner_progress"))
             if (state.ocrRunning) Text(stringResource(R.string.scanner_ocr_running), style = MaterialTheme.typography.bodyMedium)
+            if (state.fileRunning) Text(stringResource(R.string.scanner_file_running), style = MaterialTheme.typography.bodyMedium)
         }
         when (state.notice) {
             ScannerNotice.OCR_NO_TEXT -> Notice(stringResource(R.string.scanner_ocr_no_text))
             ScannerNotice.OCR_FAILED -> Notice(stringResource(R.string.scanner_ocr_failed))
             ScannerNotice.OFFLINE -> Notice(stringResource(R.string.scanner_offline_note))
+            ScannerNotice.FILE_FAILED -> Notice(stringResource(R.string.scanner_file_failed))
             else -> Unit
         }
         if (state.results.isNotEmpty()) {

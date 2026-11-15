@@ -32,17 +32,16 @@ class WorkSchedulerTest {
 
     private fun active(name: String) = wm.getWorkInfosForUniqueWork(name).get().filter { !it.state.isFinished }
 
-    @Test fun schedulesRetentionAlwaysAndFeedOnlyWithBackendAndConsent() {
+    @Test fun schedulesRetentionAndThreatFeedOnlyWhenEnabled() {
         val s = WorkScheduler(context)
-        s.schedulePeriodic(AppSettings(cloudThreatIntel = false), backendConfigured = true)
+        s.schedulePeriodic(AppSettings(threatFeed = true), firstFeedNeeded = true)
         assertEquals(1, active(WorkScheduler.WORK_RETENTION).size)
-        assertTrue(active(WorkScheduler.WORK_FEED).isEmpty())
-
-        s.schedulePeriodic(AppSettings(cloudThreatIntel = true), backendConfigured = true)
         assertEquals(1, active(WorkScheduler.WORK_FEED).size)
+        assertEquals(1, active(WorkScheduler.WORK_FEED_NOW).size) // first download on any network
 
-        s.schedulePeriodic(AppSettings(cloudThreatIntel = true), backendConfigured = false)
+        s.schedulePeriodic(AppSettings(threatFeed = false))
         assertTrue(active(WorkScheduler.WORK_FEED).isEmpty())
+        assertTrue(active(WorkScheduler.WORK_FEED_NOW).isEmpty())
     }
 
     @Test fun duplicateDeferredScansAreCollapsed() {

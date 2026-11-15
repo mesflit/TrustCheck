@@ -93,7 +93,7 @@ fun TrustCheckRoot(container: AppContainer, activity: MainActivity) {
                         OnboardingScreen(onFinished = {
                             scope.launch {
                                 container.settings.update { it.copy(onboardingCompleted = true) }
-                                container.scheduler.schedulePeriodic(container.settings.current(), container.backend.isConfigured)
+                                container.scheduler.schedulePeriodic(container.settings.current(), firstFeedNeeded = container.threatFeed.status().count == 0)
                                 container.ads.gatherConsent(activity, container.billing.entitlement.value.isPremium)
                             }
                         })
@@ -150,12 +150,7 @@ fun MainScaffold(container: AppContainer, activity: MainActivity, nav: NavHostCo
             composable(Routes.SETTINGS) { SettingsScreen(activity = activity, onOpenPremium = { nav.navigate(Routes.PREMIUM) }) }
             composable(Routes.PREMIUM) { PremiumScreen(activity = activity, onBack = { nav.popBackStack() }) }
             composable(Routes.REPORT, arguments = listOf(navArgument("id") { type = NavType.LongType })) { entry ->
-                ReportScreen(
-                    id = entry.arguments?.getLong("id") ?: 0L,
-                    activity = activity,
-                    onBack = { nav.popBackStack() },
-                    onOpenSettings = { navigateTopLevel(nav, Routes.SETTINGS) },
-                )
+                ReportScreen(id = entry.arguments?.getLong("id") ?: 0L, onBack = { nav.popBackStack() })
             }
         }
     }

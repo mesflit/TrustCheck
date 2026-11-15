@@ -102,13 +102,10 @@ object EntitlementResolver {
 }
 
 /**
- * What Premium changes: **only advertising**. Every feature — protection, AI explanations,
+ * What Premium changes: **only advertising**. Every feature — protection, file scanning,
  * history retention — is identical for free and Premium users.
  */
 object PremiumPolicy {
-    /** Fair-use limit for cloud AI explanations (protects the backend); the same for everyone. */
-    const val DAILY_AI_EXPLANATIONS = 20
-
     val RETENTION_OPTIONS_DAYS = listOf(7, 30, 90, 365)
 
     fun showAds(e: Entitlement, adsEnabledInBuild: Boolean) = adsEnabledInBuild && !e.isPremium
